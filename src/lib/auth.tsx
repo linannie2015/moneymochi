@@ -8,9 +8,8 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   configured: boolean;
-  // Email + 6-digit code login (passwordless)
-  sendCode: (email: string) => Promise<{ error: string | null }>;
-  verifyCode: (email: string, code: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: string | null; needsConfirmation: boolean }>;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -27,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // 1. Check if someone is already logged in (restores session on page load)
+    // 1. Restore an existing session on page load
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
       setLoading(false);
@@ -41,24 +40,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Step 1: email the user a 6-digit code. Creates the account if it's their first time.
-  const sendCode = useCallback(async (email: string) => {
-    if (!supabase) return { error: 'Login is not set up yet.' };
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true },
-    });
-    return { error: error?.message ?? null };
+  const signUp = useCallback(async (email: string, password: string) => {
+    if (!supabase) return { error: 'Login is not set up yet.', needsConfirmation: false };
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return { error: error.message, needsConfirmation: false };
+    // If "Confirm email" is ON in Supabase, there's no session until they confirm.
+    // If it's OFF, they're logged in immediately (session present).
+    return { error: null, needsConfirmation: !data.session };
   }, []);
 
-  // Step 2: check the 6-digit code they typed. On success, they're logged in.
-  const verifyCode = useCallback(async (email: string, code: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     if (!supabase) return { error: 'Login is not set up yet.' };
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: code.trim(),
-      type: 'email',
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error?.message ?? null };
   }, []);
 
@@ -68,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, configured: !!supabase, sendCode, verifyCode, signOut }}>
+    <AuthContext.Provider value={{ user, loading, configured: !!supabase, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -65,7 +65,7 @@ export default function AccountPage() {
           <div className="flex items-center gap-3 py-2 border-t border-line">
             <ShieldCheck size={16} className="text-muted flex-none" />
             <span className="text-muted">Sign-in method</span>
-            <span className="ml-auto font-heading font-semibold">Email code</span>
+            <span className="ml-auto font-heading font-semibold">Email &amp; password</span>
           </div>
           {createdAt && (
             <div className="flex items-center gap-3 py-2 border-t border-line">
