@@ -68,7 +68,7 @@ export default function WatchlistTable({ stocks, onAdd, onRemove }: WatchlistTab
   const [activeIdx, setActiveIdx] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [sortKey, setSortKey] = useState<SortKey>('ticker');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [timeframe, setTimeframe] = useState<WatchlistTimeframe>('1Y');

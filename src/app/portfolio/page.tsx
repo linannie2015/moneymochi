@@ -389,7 +389,7 @@ export default function PortfolioPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => ['$' + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 'Value']}
+                    formatter={(value) => ['$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 'Value']}
                     contentStyle={{
                       borderRadius: '14px',
                       border: '1px solid var(--line)',
@@ -432,7 +432,7 @@ export default function PortfolioPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => ['$' + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 'Value']}
+                    formatter={(value) => ['$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 'Value']}
                     contentStyle={{
                       borderRadius: '14px',
                       border: '1px solid var(--line)',

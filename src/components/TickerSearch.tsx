@@ -32,7 +32,7 @@ export default function TickerSearch({ value, onChange, onSelect, placeholder = 
   const [activeIdx, setActiveIdx] = useState(-1);
   const [searching, setSearching] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {

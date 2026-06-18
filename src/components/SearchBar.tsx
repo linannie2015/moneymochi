@@ -23,7 +23,7 @@ export default function SearchBar() {
   const [activeIdx, setActiveIdx] = useState(-1);
   const [searching, setSearching] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const router = useRouter();
 
   useEffect(() => {

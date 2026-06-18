@@ -374,7 +374,7 @@ export default function MochiInsights({ stock, news }: MochiInsightsProps) {
           </span>
         )}
         <button
-          onClick={refreshAI}
+          onClick={() => refreshAI()}
           disabled={aiLoading}
           className="ml-auto text-xs font-semibold text-sky flex items-center gap-1
                      bg-transparent border-none cursor-pointer hover:underline disabled:opacity-50 p-0"
