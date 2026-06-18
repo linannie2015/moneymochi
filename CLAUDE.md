@@ -2,6 +2,9 @@
 
 # MoneyMochi — Friendly Finance Dashboard
 
+## ⚠️ Keep This File Updated (read first)
+**After every change, update this file** — especially the **Supabase / Realtime** section and the **Status Log** at the bottom. This is the single source of truth for project state. Whenever we add a feature, fix a bug, change auth, touch Supabase, wire realtime data, or deploy — record it in the Status Log (newest first, with the date) so the next session knows exactly where things stand.
+
 ## Tech Stack
 - **Framework**: Next.js 16 (App Router, Turbopack)
 - **Language**: TypeScript (strict mode)
@@ -37,7 +40,7 @@ public/
 src/
 ├── app/
 │   ├── layout.tsx        # Root layout with TopBar + Footer + MobileNav
-│   ├── page.tsx           # Watchlist home (uses useWatchlist hook)
+│   ├── page.tsx           # Home: Landing if logged out, watchlist if signed in
 │   ├── globals.css        # Design system, fonts, animations
 │   ├── stock/[ticker]/
 │   │   └── page.tsx       # Stock detail (Hero → Chart → AI → News → Metrics → S/R → Entry/Exit)
@@ -45,8 +48,12 @@ src/
 │   │   └── page.tsx       # Price alerts management
 │   ├── portfolio/
 │   │   └── page.tsx       # Portfolio tracker (holdings, allocation pie, P&L)
-│   └── dca/
-│       └── page.tsx       # DCA calculator (projections, growth chart, breakdown)
+│   ├── dca/
+│   │   └── page.tsx       # DCA calculator (projections, growth chart, breakdown)
+│   ├── login/
+│   │   └── page.tsx       # Email + password sign in / sign up
+│   └── account/
+│       └── page.tsx       # Account settings (email, sign out)
 ├── components/
 │   ├── TopBar.tsx           # Sticky header: SVG logo, search, dark mode toggle, desktop nav
 │   ├── MobileNav.tsx        # Fixed bottom nav for mobile (md:hidden)
@@ -60,14 +67,19 @@ src/
 │   ├── ScoreBadge.tsx       # Conic-gradient score ring
 │   ├── PriceChart.tsx       # Area chart with period selector (1M/3M/6M/1Y)
 │   ├── NewsSection.tsx      # News headline list
-│   └── Footer.tsx           # Footer: SVG logo, nav links, disclaimer
+│   ├── Footer.tsx           # Footer: SVG logo, nav links, disclaimer
+│   ├── Landing.tsx          # Logged-out welcome page (hero + feature cards)
+│   └── AuthGate.tsx         # Redirects logged-out users off protected routes
 └── lib/
     ├── types.ts            # TypeScript interfaces
     ├── utils.ts            # Formatters, entry status logic
     ├── demo-data.ts        # Demo stocks/news (deterministic, seeded random)
     ├── api.ts              # Finnhub + Twelve Data API clients
     ├── hooks.ts            # useStockData, useWatchlist (auto-fallback to demo)
-    └── supabase.ts         # Supabase client (optional)
+    ├── supabase.ts         # Supabase client (null if env vars missing)
+    └── auth.tsx            # AuthProvider + useAuth (email + password)
+supabase/
+└── schema.sql           # Per-user tables (watchlist, holdings, alerts) + RLS
 ```
 
 ## Data Architecture
@@ -75,15 +87,23 @@ src/
 - **With API keys**: Fetches live quotes, news, price history from Finnhub + Twelve Data
 - Set keys in `.env.local` (see `.env.local.example`)
 
-## Supabase Migration (Planned)
-Currently all persistence uses localStorage (watchlist, portfolio holdings, alerts, theme preference).
-The Supabase client is scaffolded in `src/lib/supabase.ts`; env vars are in `.env.local.example`.
+## Supabase & Realtime Data (IN PROGRESS — keep updated)
+**Supabase is connected.** Project ref `dmapwgxlossapbzyqyzd`. Client in `src/lib/supabase.ts` (returns `null` if env vars missing → app falls back to demo/localStorage). Keys in `.env.local` (URL + publishable + secret). Schema in `supabase/schema.sql`.
 
-When ready to migrate:
-1. **Phase 1 — Auth + Storage**: Move watchlist, portfolio, alerts to Supabase tables. Add auth (magic link or OAuth). Users get cross-device sync.
-2. **Phase 2 — Live Data Pipeline**: Supabase Edge Function on a cron refreshes stock quotes, news, and price history from Finnhub + Twelve Data into Supabase. Frontend reads from Supabase instead of calling APIs directly. API keys move to server-side only.
-3. **Phase 3 — Real-time Alerts**: Price alerts checked server-side on each refresh. Push notifications via Supabase Realtime or email when targets are hit — works even when the app is closed.
-4. **Phase 4 — AI Insights Cache**: Cache Anthropic Claude analysis in Supabase to reduce API costs and speed up repeat views.
+- **Phase 1 — Auth + Storage** *(in progress)*
+  - ✅ **Auth**: email + password (`src/lib/auth.tsx` → `AuthProvider`/`useAuth`). Pages: `/login`, `/account`. Route protection via `src/components/AuthGate.tsx` (only `/` and `/login` are public; nav hidden when logged out). Logged-out `/` shows `src/components/Landing.tsx`.
+    - Supabase setting required: **Authentication → Sign In/Providers → Email → "Confirm email" OFF** (instant signup, no email sender needed).
+    - NOTE: email OTP (6-digit) was tried but needs custom SMTP to edit templates → switched to email+password instead.
+  - ✅ **Tables** (per-user, Row Level Security so each user sees only their own): `watchlist`, `holdings`, `alerts`. See `supabase/schema.sql`.
+  - ⏳ **TODO**: wire `useWatchlist` (hooks.ts), portfolio holdings (portfolio/page.tsx), and alerts (alerts/page.tsx) to read/write Supabase per-user. **Currently these still use localStorage.**
+- **Phase 2 — Live Data Pipeline**: Edge Function on cron refreshes quotes/news/history into Supabase; frontend reads from Supabase; API keys move server-side only.
+- **Phase 3 — Realtime Alerts**: alerts checked server-side each refresh; push via Supabase Realtime or email even when app is closed.
+- **Phase 4 — AI Insights Cache**: cache Claude analysis in Supabase to cut cost / speed repeat views.
+
+## Deployment
+- **GitHub**: https://github.com/linannie2015/moneymochi (account: linannie2015). `.env.local` is gitignored — keys never committed.
+- **Vercel**: deploy from GitHub. MUST add env vars in Vercel (the 5 from `.env.local`: Finnhub, Twelve Data, Supabase URL, Supabase anon/publishable, Supabase secret). After deploy, add the Vercel URL to Supabase → Auth → URL Configuration (Site URL + Redirect URLs).
+- `npm run build` must pass before deploying (Turbopack dev does NOT type-check; the build does).
 
 ## Key Patterns
 - Entry watch system: in-zone / approaching / near-highs / mid-range
@@ -107,3 +127,12 @@ npm run lint    # ESLint
 - No buy/sell recommendations. AI analysis framed as educational context.
 - Support/resistance presented as historical zones, not predictions.
 - Demo data uses fixed timestamps and seeded random to avoid hydration mismatches.
+
+## Status Log (newest first — UPDATE AFTER EVERY CHANGE)
+- **2026-06-18** — Verified `npm run build` passes; fixed pre-existing build errors (Recharts Tooltip formatter types ×2, MochiInsights `onClick` passing event as AbortSignal, `useRef<ReturnType<typeof setTimeout>>` missing arg ×3). Prepared Vercel deploy guide (env vars). Pushed to GitHub.
+- **2026-06-18** — Switched auth from email OTP to **email + password** (OTP needs custom SMTP; not worth it now). Updated `/login`, `/account`, `auth.tsx`.
+- **2026-06-18** — Added **accounts**: `auth.tsx`, `/login`, `/account`, `Landing.tsx`, `AuthGate.tsx`. Removed "Built with Next.js" from footer. Hid nav when logged out.
+- **2026-06-18** — Connected **Supabase** (project `dmapwgxlossapbzyqyzd`); created `watchlist`/`holdings`/`alerts` tables with RLS (`supabase/schema.sql`).
+- **2026-06-18** — First push to **GitHub** (linannie2015/moneymochi). Logged out/in via Git Credential Manager.
+- **Earlier this session** — Watchlist frozen column with pull-to-reveal (compact at rest, full name on pull). Fixed support-level calc per timeframe (detail page + watchlist). Fixed 9 review bugs.
+- **NEXT** — Deploy to Vercel (add 5 env vars) → add Vercel URL to Supabase Auth redirect URLs → then wire per-user data (Phase 1 TODO above).
