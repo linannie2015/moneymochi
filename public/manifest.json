@@ -1,0 +1,28 @@
+{
+  "name": "MoneyMochi — Friendly Finance Dashboard",
+  "short_name": "MoneyMochi",
+  "description": "Your friendly stock investment dashboard. Track, analyze, and stay informed.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FBF6F0",
+  "theme_color": "#FF9E80",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

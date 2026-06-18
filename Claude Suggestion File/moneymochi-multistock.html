@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoneyMochi 🍡 — Multi-Stock Finance Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --cream:#FFF7F0;--cream2:#FFEFE4;--card:#FFFFFF;--ink:#4A3B33;--muted:#9A8A7E;--line:#F0E2D6;
+    --peach:#FF9E80;--peach-soft:#FFD9CC;--mint:#5FC9A0;--mint-soft:#D6F3E6;--lav:#B79CE0;--lav-soft:#EADFFA;
+    --sky:#4F90D4;--sky-soft:#E7F1FB;--sun:#FFC65C;--sun-soft:#FFEFC9;--coral:#FF6F91;--grey:#C9BBB0;
+    --shadow:0 10px 30px rgba(120,90,70,.10);--shadow-sm:0 4px 14px rgba(120,90,70,.08);--r:22px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Nunito',sans-serif;color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;
+    background:radial-gradient(circle at 12% 8%,var(--lav-soft) 0,transparent 38%),
+      radial-gradient(circle at 88% 4%,var(--mint-soft) 0,transparent 34%),
+      radial-gradient(circle at 80% 92%,var(--peach-soft) 0,transparent 40%),var(--cream);
+    background-attachment:fixed;}
+  h1,h2,h3{font-family:'Fredoka',sans-serif;font-weight:600;line-height:1.2;margin:0}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px 80px}
+  a{color:var(--sky)}
+
+  .topbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(8px);background:rgba(255,247,240,.82);border-bottom:1px solid var(--line)}
+  .topbar-in{max-width:1080px;margin:0 auto;padding:14px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .logo{font-family:'Fredoka';font-weight:700;font-size:1.25rem;white-space:nowrap}
+  .logo .blob{background:linear-gradient(120deg,var(--peach),var(--coral));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tagline{font-size:.78rem;color:var(--muted)}
+
+  .search{position:relative;flex:1;min-width:220px;max-width:400px;margin-left:auto}
+  .search input{width:100%;padding:12px 16px 12px 42px;border:2px solid var(--line);border-radius:999px;background:#fff;
+    font-family:'Nunito';font-size:1rem;color:var(--ink);outline:none;transition:.2s;box-shadow:var(--shadow-sm)}
+  .search input:focus{border-color:var(--peach);box-shadow:0 0 0 4px var(--peach-soft)}
+  .search .mag{position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:1.05rem}
+  .dropdown{position:absolute;top:54px;left:0;right:0;background:#fff;border:2px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow);overflow:hidden;display:none;max-height:340px;overflow-y:auto}
+  .dropdown.open{display:block;animation:pop .18s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .opt{display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;transition:.12s}
+  .opt:hover,.opt.active{background:var(--cream2)}
+  .opt .tk{font-family:'Fredoka';font-weight:600;background:var(--ink);color:#fff;border-radius:9px;padding:3px 9px;font-size:.78rem;min-width:60px;text-align:center}
+  .opt .nm{font-weight:700;font-size:.95rem}
+  .opt .seg{margin-left:auto;font-size:.72rem;color:var(--muted)}
+  .opt.ready .seg{color:var(--mint);font-weight:700}
+  .noopt{padding:16px;color:var(--muted);text-align:center;font-size:.9rem}
+
+  .keybtn{font-family:'Fredoka';font-weight:600;font-size:.82rem;border:2px solid var(--line);background:#fff;border-radius:999px;
+    padding:9px 14px;cursor:pointer;white-space:nowrap;box-shadow:var(--shadow-sm)}
+  .keybtn.on{border-color:var(--mint);background:var(--mint-soft);color:#1E8A5E}
+  .keypanel{display:none;margin-top:14px;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow-sm)}
+  .keypanel.open{display:block}
+  .keypanel input{width:100%;padding:10px 14px;border:2px solid var(--line);border-radius:12px;font-family:'Nunito';font-size:.95rem;margin:8px 0}
+  .keypanel button{font-family:'Fredoka';font-weight:600;background:var(--peach);color:#fff;border:none;border-radius:999px;padding:9px 20px;cursor:pointer}
+
+  .hero{margin-top:24px;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 28px;position:relative;overflow:hidden;border:1px solid var(--line)}
+  .hero-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .glyph{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font-family:'Fredoka';font-weight:700;font-size:1.6rem;color:#fff;flex:none}
+  .hero h1{font-size:1.7rem}
+  .ticker-chip{display:inline-block;color:#fff;font-family:'Fredoka';font-weight:600;border-radius:9px;padding:2px 10px;font-size:.82rem;margin-left:6px;vertical-align:middle;background:var(--ink)}
+  .hero .where{color:var(--muted);font-size:.86rem;margin-top:2px}
+  .price-row{display:flex;gap:22px;align-items:flex-end;margin-top:18px;flex-wrap:wrap}
+  .bigprice{font-family:'Fredoka';font-weight:700;font-size:2.5rem;letter-spacing:-1px}
+  .chg{font-weight:800;font-size:1.02rem;padding:4px 12px;border-radius:999px}
+  .chg.down{background:var(--peach-soft);color:#C0392B}.chg.up{background:var(--mint-soft);color:#1E8A5E}
+  .asof{color:var(--muted);font-size:.8rem;margin-left:auto;align-self:center;text-align:right}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .chip{background:var(--cream2);border-radius:14px;padding:9px 14px;font-size:.85rem}
+  .chip b{font-family:'Fredoka';font-weight:600;display:block;font-size:1.05rem}
+  .chip span{color:var(--muted)}
+  .scorebadge{position:absolute;right:24px;top:24px;text-align:center;background:conic-gradient(var(--mint) var(--deg,252deg),var(--line) 0);
+    width:78px;height:78px;border-radius:50%;display:grid;place-items:center}
+  .scorebadge .in{width:62px;height:62px;border-radius:50%;background:#fff;display:grid;place-items:center;font-family:'Fredoka';font-weight:700;line-height:1}
+  .scorebadge .in b{font-size:1.5rem}.scorebadge .in small{font-size:.62rem;color:var(--muted)}
+  @media(max-width:600px){.scorebadge{position:static;margin-top:14px}}
+
+  section{margin-top:32px}
+  .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .sec-head .e{font-size:1.4rem}.sec-head h2{font-size:1.4rem}
+  .sec-sub{color:var(--muted);margin:0 0 16px;max-width:780px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:24px}
+  .grid{display:grid;gap:16px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}.split{flex-direction:column}}
+  .split{display:flex;gap:24px;align-items:center}
+  .chartbox{position:relative;flex:none;width:290px;height:290px}
+  @media(max-width:760px){.chartbox{width:100%;max-width:290px;margin:0 auto}}
+
+  .explainer{background:var(--sky-soft);border:1.5px solid #CFE3F6;border-left:5px solid var(--sky);border-radius:14px;padding:13px 16px;margin:14px 0;font-size:.92rem}
+  .explainer .lbl{font-family:'Fredoka';font-weight:600;color:var(--sky);display:flex;align-items:center;gap:6px;margin-bottom:2px}
+  .term{border-bottom:2px dotted var(--sky);cursor:help;position:relative;font-weight:700;color:var(--sky)}
+  .term .tip{visibility:hidden;opacity:0;position:absolute;bottom:140%;left:50%;transform:translateX(-50%);width:230px;
+    background:var(--ink);color:#fff;padding:10px 12px;border-radius:12px;font-size:.8rem;font-weight:400;line-height:1.45;transition:.18s;z-index:20}
+  .term .tip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--ink)}
+  .term:hover .tip{visibility:visible;opacity:1}
+
+  .seglist{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .segitem{display:flex;align-items:flex-start;gap:12px;padding:11px 12px;border-radius:14px;background:var(--cream);border:1px solid var(--line)}
+  .dot{width:14px;height:14px;border-radius:5px;margin-top:5px;flex:none}
+  .segitem .t{font-family:'Fredoka';font-weight:600}
+  .segitem .v{margin-left:auto;text-align:right;flex:none}
+  .segitem .v b{font-family:'Fredoka';font-size:1.05rem}.segitem .v small{display:block;color:var(--muted);font-size:.74rem}
+  .segitem p{margin:3px 0 0;font-size:.84rem;color:var(--muted)}
+
+  .metric{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow-sm)}
+  .metric .ic{font-size:1.25rem}.metric .k{color:var(--muted);font-size:.8rem;margin-top:6px;font-weight:700}
+  .metric .val{font-family:'Fredoka';font-weight:700;font-size:1.5rem;margin-top:2px}
+  .metric .note{font-size:.76rem;color:var(--muted);margin-top:3px}
+  .pill{display:inline-block;font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:999px;margin-top:8px}
+  .pill.good{background:var(--mint-soft);color:#1E8A5E}.pill.watch{background:var(--sun-soft);color:#A06A00}.pill.bad{background:var(--peach-soft);color:#C0392B}
+
+  .rangebar{margin:26px 0 8px;position:relative;height:18px;border-radius:999px;background:linear-gradient(90deg,var(--mint) 0%,var(--sun) 55%,var(--coral) 100%)}
+  .rangebar .now{position:absolute;top:-9px;width:6px;height:36px;background:var(--ink);border-radius:4px;box-shadow:0 0 0 4px #fff}
+  .rangebar .nowlabel{position:absolute;top:-44px;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:'Fredoka';font-weight:600;font-size:.76rem;padding:3px 9px;border-radius:9px;white-space:nowrap}
+  .rangebar .nowlabel::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink)}
+  .rangeends{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-top:6px}
+  .rangeends b{font-family:'Fredoka';color:var(--ink);display:block;font-size:1rem}
+  .band{position:absolute;top:0;height:18px;opacity:.55;border-radius:4px}
+  .band.sup{background:repeating-linear-gradient(45deg,#1E8A5E,#1E8A5E 5px,transparent 5px,transparent 10px)}
+  .band.res{background:repeating-linear-gradient(45deg,#C0392B,#C0392B 5px,transparent 5px,transparent 10px)}
+  .zone{display:flex;gap:14px;margin-top:18px;flex-wrap:wrap}
+  .zonebox{flex:1;min-width:220px;border-radius:16px;padding:14px 16px;border:1px solid var(--line)}
+  .zonebox.sup{background:var(--mint-soft)}.zonebox.res{background:var(--peach-soft)}
+  .zonebox h3{font-size:1.02rem;display:flex;align-items:center;gap:7px;margin-bottom:4px}
+  .zonebox .zp{font-family:'Fredoka';font-weight:700;font-size:1.25rem}
+  .zonebox p{margin:4px 0 0;font-size:.85rem}
+
+  .dd h3{font-size:1.08rem;margin:18px 0 4px;display:flex;align-items:center;gap:8px}
+  .dd p{margin:4px 0}
+  .dd .bull,.dd .bear{border-radius:14px;padding:14px 16px;margin:10px 0}
+  .dd .bull{background:var(--mint-soft)}.dd .bear{background:var(--peach-soft)}
+  .invalid{background:#FFF;border:2px dashed var(--coral);border-radius:16px;padding:16px 18px;margin-top:14px}
+  .invalid h3{margin:0 0 6px}
+
+  table.peer{width:100%;border-collapse:collapse;font-size:.9rem}
+  table.peer th,table.peer td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--line)}
+  table.peer th:first-child,table.peer td:first-child{text-align:left;font-weight:700}
+  table.peer thead th{font-family:'Fredoka';font-weight:600}
+  table.peer td.hl{background:var(--sun-soft);font-weight:800;border-radius:8px}
+
+  .disc{background:#FFF;border:1px dashed var(--grey);border-radius:18px;padding:18px 22px;margin-top:24px;text-align:left;font-size:.84rem}
+  .disc b{font-family:'Fredoka';color:var(--ink)}
+  footer{margin-top:40px;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.7}
+  .loading{text-align:center;padding:50px;color:var(--muted)}
+  .spin{width:34px;height:34px;border:4px solid var(--line);border-top-color:var(--peach);border-radius:50%;animation:sp 1s linear infinite;margin:0 auto 14px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .hide{display:none!important}
+  /* alerts */
+  .alertspanel{position:fixed;right:16px;bottom:16px;width:340px;max-width:calc(100vw - 32px);max-height:70vh;overflow-y:auto;
+    background:#fff;border:1.5px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:18px;z-index:80;display:none}
+  .alertspanel.open{display:block;animation:pop .2s ease}
+  .alertspanel h3{font-size:1.15rem;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .watchrow{border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-top:10px;background:var(--cream)}
+  .watchrow.hit{background:var(--mint-soft);border-color:var(--mint)}
+  .watchrow .top{display:flex;align-items:center;gap:8px}
+  .watchrow .tk{font-family:'Fredoka';font-weight:700}
+  .watchrow .x{margin-left:auto;cursor:pointer;color:var(--muted);font-weight:800;border:none;background:none;font-size:1rem}
+  .watchrow .det{font-size:.82rem;color:var(--muted);margin-top:4px}
+  .watchrow .stat{font-family:'Fredoka';font-weight:600;font-size:.9rem;margin-top:4px}
+  .addwatch{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+  .addwatch input{flex:1;min-width:80px;padding:8px 11px;border:2px solid var(--line);border-radius:10px;font-family:'Nunito';font-size:.9rem}
+  .addwatch button{font-family:'Fredoka';font-weight:600;background:var(--peach);color:#fff;border:none;border-radius:10px;padding:8px 14px;cursor:pointer}
+  .watchbtn{font-family:'Fredoka';font-weight:600;font-size:.82rem;background:var(--ink);color:#fff;border:none;border-radius:999px;padding:8px 16px;cursor:pointer;margin-top:12px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(100px);background:var(--ink);color:#fff;
+    padding:14px 20px;border-radius:16px;box-shadow:var(--shadow);z-index:120;font-weight:700;max-width:90vw;opacity:0;transition:.35s}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .badge{position:absolute;top:-6px;right:-6px;background:var(--coral);color:#fff;border-radius:999px;font-size:.68rem;font-weight:800;min-width:18px;height:18px;display:grid;place-items:center;padding:0 4px}
+  #bellBtn{position:relative}
+  /* news */
+  .newsrow{display:flex;gap:12px;align-items:flex-start;padding:13px 4px;border-bottom:1px dashed var(--line);text-decoration:none;color:var(--ink);transition:.12s}
+  .newsrow:last-child{border-bottom:none}
+  .newsrow:hover{background:var(--cream)}
+  .newsrow .nico{font-size:1.15rem;flex:none;margin-top:1px}
+  .nhead{font-family:'Fredoka';font-weight:600;line-height:1.3}
+  .nmeta{font-size:.76rem;color:var(--muted);margin-top:2px;font-weight:700}
+  .nsum{font-size:.85rem;color:var(--muted);margin-top:4px;line-height:1.4}
+  .narrow{margin-left:auto;color:var(--sky);font-weight:800;flex:none;font-size:1.1rem}
+  /* watchlist */
+  .wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:6px}
+  .wcard{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-sm);padding:16px 16px 18px;cursor:pointer;transition:.15s;position:relative}
+  .wcard:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .wcard.near{border-color:var(--mint);background:linear-gradient(180deg,var(--mint-soft),#fff 60%)}
+  .wcard .wtk{font-family:'Fredoka';font-weight:700;font-size:1.15rem}
+  .wcard .wnm{font-size:.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wcard .wx{position:absolute;top:9px;right:11px;border:none;background:none;color:var(--grey);cursor:pointer;font-weight:800;font-size:.95rem;line-height:1}
+  .wcard .wx:hover{color:var(--coral)}
+  .wprice{font-family:'Fredoka';font-weight:700;font-size:1.45rem;margin-top:8px}
+  .wchg{font-size:.84rem;font-weight:800}.wchg.up{color:#1E8A5E}.wchg.down{color:#C0392B}
+  .wmini{margin-top:11px;height:8px;border-radius:999px;background:linear-gradient(90deg,var(--mint),var(--sun),var(--coral));position:relative}
+  .wmini .m{position:absolute;top:-3px;width:4px;height:14px;background:var(--ink);border-radius:2px;box-shadow:0 0 0 2px #fff}
+  .wsup{font-size:.78rem;margin-top:9px;font-weight:700;color:var(--muted)}
+  .wsup .near{color:#1E8A5E}
+  .waddbar{display:flex;gap:8px;margin:16px 0 12px;flex-wrap:wrap}
+  .waddbar input{flex:1;min-width:120px;max-width:220px;padding:10px 14px;border:2px solid var(--line);border-radius:12px;font-family:'Nunito';font-size:.95rem}
+  .waddbar button{font-family:'Fredoka';font-weight:600;background:var(--peach);color:#fff;border:none;border-radius:12px;padding:10px 18px;cursor:pointer}
+  /* watchlist table */
+  .wtablewrap{border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow-sm);background:#fff}
+  .wscroll{overflow-x:auto}
+  table.wt{width:100%;border-collapse:collapse;min-width:680px}
+  table.wt th{font-family:'Fredoka';font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);text-align:left;padding:13px 14px;background:var(--cream2);border-bottom:1px solid var(--line);white-space:nowrap}
+  table.wt td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:middle;background:#fff}
+  table.wt tbody tr:last-child td{border-bottom:none}
+  table.wt tbody tr{cursor:pointer}
+  table.wt tbody tr:hover td{background:var(--cream)}
+  table.wt tbody tr.near td{background:var(--mint-soft)}
+  table.wt tbody tr.near:hover td{background:#cdeedd}
+  table.wt th:first-child,table.wt td:first-child{position:sticky;left:0;z-index:1}
+  table.wt th:first-child{z-index:2}
+  .wt .stk{font-family:'Fredoka';font-weight:700;font-size:1.02rem}
+  .wt .snm{font-size:.73rem;color:var(--muted)}
+  .wt .px{font-family:'Fredoka';font-weight:700;font-size:1.02rem;white-space:nowrap}
+  .wt .chg{font-weight:800;white-space:nowrap}.wt .chg.up{color:#1E8A5E}.wt .chg.down{color:#C0392B}
+  .wt .sup{font-family:'Fredoka';font-weight:600;white-space:nowrap}
+  .wt .rm{border:none;background:none;color:var(--grey);cursor:pointer;font-weight:800;float:right;font-size:.9rem}
+  .wt .rm:hover{color:var(--coral)}
+  .sbadge{display:inline-block;font-size:.75rem;font-weight:800;padding:4px 11px;border-radius:999px;white-space:nowrap}
+  .sbadge.zone{background:var(--mint-soft);color:#1E8A5E}
+  .sbadge.appr{background:var(--sun-soft);color:#A06A00}
+  .sbadge.high{background:var(--peach-soft);color:#C0392B}
+  .sbadge.mid{background:var(--cream2);color:var(--muted)}
+  .wtbar{width:100px;height:8px;border-radius:999px;background:linear-gradient(90deg,var(--mint),var(--sun),var(--coral));position:relative}
+  .wtbar .m{position:absolute;top:-3px;width:4px;height:14px;background:var(--ink);border-radius:2px;box-shadow:0 0 0 2px #fff}
+  .leg{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 14px;font-size:.8rem;color:var(--muted)}
+  .leg span{display:inline-flex;align-items:center;gap:5px}
+  .wlstats{display:flex;gap:12px;flex-wrap:wrap;margin:2px 0 4px}
+  .wlstat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px 16px;box-shadow:var(--shadow-sm);min-width:118px}
+  .wlstat b{font-family:'Fredoka';font-weight:700;font-size:1.25rem;display:block;line-height:1.1}
+  .wlstat span{font-size:.73rem;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div style="cursor:pointer" id="homeLink">
+      <div class="logo">🍡 <span class="blob">MoneyMochi</span></div>
+      <div class="tagline">friendly finance · look up any stock</div>
+    </div>
+    <div class="search">
+      <span class="mag">🔍</span>
+      <input id="searchInput" type="text" placeholder="Search any company or ticker…" autocomplete="off">
+      <div class="dropdown" id="dropdown"></div>
+    </div>
+    <button class="keybtn" id="homeBtn">📋 Watchlist</button>
+    <button class="keybtn" id="keyBtn">🔑 Live data</button>
+    <button class="keybtn" id="bellBtn">🔔 Alerts</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="keypanel" id="keyPanel">
+    <b style="font-family:'Fredoka'">Turn on live data for any stock</b>
+    <p style="margin:6px 0;font-size:.88rem;color:var(--muted)">Get a free key at <a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io/register</a> (30 seconds, no card), paste it below, and you can look up real-time numbers and search any ticker. The four covered names work without a key.</p>
+    <input id="keyInput" type="text" placeholder="Paste your Finnhub API key here (live prices, fundamentals, search)">
+    <p style="margin:10px 0 0;font-size:.88rem;color:var(--muted)">Optional — for the price-history chart, add a free <a href="https://twelvedata.com/pricing" target="_blank" rel="noopener">Twelve Data</a> key:</p>
+    <input id="histInput" type="text" placeholder="Paste your Twelve Data key here (optional, for history chart)">
+    <button id="keySave">Save keys</button>
+    <span id="keyStatus" style="margin-left:10px;font-size:.85rem"></span>
+    <p style="margin:10px 0 0;font-size:.78rem;color:var(--muted)">💡 Tip: if you download this file, you can paste your key into the <code>API_KEY</code> line near the top of the code so it's remembered permanently.</p>
+  </div>
+
+  <div id="stockView"></div>
+</div>
+
+<div class="alertspanel" id="alertsPanel">
+  <h3>🔔 Price alerts <button class="watchrow .x" id="alertsClose" style="margin-left:auto;border:none;background:none;cursor:pointer;font-size:1.1rem">✕</button></h3>
+  <p style="font-size:.82rem;color:var(--muted);margin:0">Get pinged when a stock drops to a price you choose (e.g. your support zone). Watches check every minute while this page is open. Needs your Finnhub key on. <b>Not a buy signal — just a heads-up.</b></p>
+  <div id="watchList"></div>
+  <div class="addwatch">
+    <input id="watchTk" placeholder="Ticker" style="max-width:90px">
+    <input id="watchPx" type="number" placeholder="Alert at $" step="0.01">
+    <button id="watchAdd">Add</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<footer>
+  Made with 🍡 by MoneyMochi · educational only, not financial advice<br>
+  Covered analysis: Alphabet, Microsoft, Meta, Amazon · live data for everything else
+</footer>
+
+<script>
+/* ============================================================
+   API KEY — paste your free Finnhub key here for permanent use:
+   ============================================================ */
+const API_KEY = "";          // e.g. "abc123..."  (leave blank to use the in-app button)
+let apiKey = API_KEY;
+const HIST_KEY = "";         // optional Twelve Data key for the price-history chart
+let histKey = HIST_KEY;
+
+/* ---- Your watchlist (edit these tickers to match your portfolio) ---- */
+const HOLDINGS = ["RKLB","AMD","MU","MSTR","VOO","QQQM"];
+const WATCH_DEFAULT = [...HOLDINGS, "GOOGL","MSFT","META","AMZN"];
+let watchlist = [...new Set(WATCH_DEFAULT)];
+let wlData = {};
+const NAMES = {RKLB:"Rocket Lab",AMD:"Advanced Micro Devices",MU:"Micron Technology",
+  MSTR:"Strategy (MicroStrategy)",VOO:"Vanguard S&P 500 ETF",QQQM:"Invesco Nasdaq-100 ETF"};
+
+/* ---------------- SEARCH UNIVERSE ---------------- */
+const UNIVERSE = [
+  {tk:"GOOGL",nm:"Alphabet Inc. (Google)",ready:true},
+  {tk:"MSFT", nm:"Microsoft Corp.",ready:true},
+  {tk:"META", nm:"Meta Platforms (Facebook)",ready:true},
+  {tk:"AMZN", nm:"Amazon.com Inc.",ready:true},
+  {tk:"GOOG", nm:"Alphabet Inc. (Google, Class C)",ready:true},
+  {tk:"AAPL", nm:"Apple Inc.",ready:false},
+  {tk:"NVDA", nm:"NVIDIA Corp.",ready:false},
+  {tk:"TSLA", nm:"Tesla Inc.",ready:false},
+  {tk:"NFLX", nm:"Netflix Inc.",ready:false},
+  {tk:"AVGO", nm:"Broadcom Inc.",ready:false},
+  {tk:"AMD",  nm:"Advanced Micro Devices",ready:false},
+  {tk:"ORCL", nm:"Oracle Corp.",ready:false},
+  {tk:"CRM",  nm:"Salesforce Inc.",ready:false},
+  {tk:"DIS",  nm:"Walt Disney Co.",ready:false},
+  {tk:"V",    nm:"Visa Inc.",ready:false},
+  {tk:"JPM",  nm:"JPMorgan Chase",ready:false},
+  {tk:"KO",   nm:"Coca-Cola Co.",ready:false},
+  {tk:"PLTR", nm:"Palantir Technologies",ready:false},
+  {tk:"UBER", nm:"Uber Technologies",ready:false},
+  {tk:"SHOP", nm:"Shopify Inc.",ready:false},
+];
+
+/* ---------------- SHARED PEER TABLE ---------------- */
+const PEER_TABLE = `
+<section>
+  <div class="sec-head"><span class="e">⚖️</span><h2>The megacap-AI peer group</h2></div>
+  <p class="sec-sub">How the four covered names stack up on growth, margins and valuation. The cheapest on forward earnings is highlighted — and it's not the one most people assume.</p>
+  <div class="card" style="overflow-x:auto">
+    <table class="peer">
+      <thead><tr><th>Metric</th><th>GOOGL</th><th>MSFT</th><th>META</th><th>AMZN</th></tr></thead>
+      <tbody>
+        <tr><td>Forward P/E</td><td>~26–29×</td><td>~22–25×</td><td class="hl">~18×</td><td>~31×</td></tr>
+        <tr><td>Revenue growth</td><td>+22%</td><td>+15–18%</td><td>+22%</td><td>+17%</td></tr>
+        <tr><td>Cloud growth</td><td>+63%</td><td>+39–40%</td><td>—</td><td>+28%</td></tr>
+        <tr><td>Operating margin</td><td>~36%</td><td>~44–46%</td><td>~47%</td><td>~13%</td></tr>
+        <tr><td>2026 capex</td><td>$180–190B</td><td>~$190B</td><td>$125–145B</td><td>~$200B</td></tr>
+      </tbody>
+    </table>
+    <div class="explainer" style="margin-bottom:0">
+      <div class="lbl">💡 Cheap → expensive (forward P/E)</div>
+      <b>Meta &lt; Microsoft &lt; Alphabet ≈ Amazon.</b> After Alphabet's huge run it's now at the expensive end with Amazon — Meta is the value name of the group for similar growth, and Microsoft offers the cleanest margins.
+    </div>
+  </div>
+</section>`;
+
+/* ---------------- SHARED: CALM ENTRY/EXIT FRAMEWORK ---------------- */
+const ENTRY_EXIT = `
+<section>
+  <div class="sec-head"><span class="e">🧘</span><h2>Best time to enter &amp; exit — the calm way</h2></div>
+  <p class="sec-sub">The honest truth: nobody reliably nails the perfect price or moment. The support/resistance zones above tell you <i>roughly</i> where buyers and sellers have reacted — use them as context, not signals. Here are the frameworks investors actually lean on.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="margin-bottom:10px">🪜 Entering</h3>
+      <p style="margin:0 0 10px"><b>Near support</b> is often seen as a lower-risk <i>area</i> to buy (you're closer to the floor), but support can break. The bigger idea: <b>dollar-cost averaging</b> — buying a fixed amount on a regular schedule regardless of price. Some buys land high, some low, they average out, and you stop trying to guess the bottom.</p>
+      <div class="explainer" style="margin:0"><div class="lbl">💡 Why it helps</div>"Time <i>in</i> the market usually beats <i>timing</i> the market." Spreading purchases out makes any single unlucky day matter far less.</div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:10px">🚪 Exiting</h3>
+      <p style="margin:0 0 8px"><b>Near resistance</b> is where a stock has historically stalled and some investors trim. But decide <i>why</i> you'd sell <b>before</b> you buy, not in a panic. Common reasons:</p>
+      <ul style="margin:0;padding-left:20px;font-size:.92rem">
+        <li>You need the money for a real-life goal.</li>
+        <li>The reason you invested no longer holds (see each stock's invalidation level above).</li>
+        <li>One stock has grown into a risky share of your savings — time to rebalance.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="explainer"><div class="lbl">💡 The grown-up summary</div>
+    Support, resistance and "best entry" prices are <b>tools for thinking</b>, not crystal balls. A plan you can stick to — how much, how often, and your reason for owning it — protects you more than picking the exact bottom. Never invest money you'll need soon. <b>None of this is a buy or sell recommendation.</b></div>
+</section>`;
+
+
+const CURATED = {
+  GOOGL:{
+    name:"Alphabet Inc.", tickers:["GOOGL","GOOG"], glyph:"G",
+    gradient:"conic-gradient(from 200deg,#4F90D4,#FF6F91,#FFC65C,#5FC9A0,#4F90D4)",
+    where:"Parent of Google · Nasdaq, USA", asof:"Snapshot 7 Jun 2026",
+    price:368.53, change:-3.66, changePct:-0.98,
+    chips:[["$4.43T","Market cap"],["+112%","Past 12 mo"],["$422.5B","Revenue (TTM)"],["~28×","P/E (TTM)"],["0.24%","Div yield"]],
+    blurb:"Alphabet owns Google — Search, YouTube, Android, Gmail, Google Cloud, the Gemini AI models, and moonshots like the self-driving company Waymo. When you buy GOOGL (1 vote) or GOOG (no vote), you own a slice of all of it.",
+    segments:[
+      {name:"Google Search & other",val:60.4,color:"#FF9E80",growth:"+19%",desc:"Ads on Google Search — the core money-maker."},
+      {name:"Google Cloud",val:20.0,color:"#5FC9A0",growth:"+63%",desc:"Renting computing power & AI tools to businesses. Fastest grower."},
+      {name:"Subscriptions, platforms & devices",val:12.4,color:"#B79CE0",growth:"+19%",desc:"YouTube Premium, Google One, Pixel, the Play Store."},
+      {name:"YouTube ads",val:9.9,color:"#FF6F91",growth:"+11%",desc:"Ads before and during YouTube videos."},
+      {name:"Google Network",val:7.0,color:"#FFC65C",growth:"−4%",desc:"Ads Google places on other companies' sites & apps."},
+      {name:"Other Bets",val:0.4,color:"#C9BBB0",growth:"−9%",desc:"Moonshots like Waymo (still loss-making)."},
+    ],
+    segNote:"Roughly 3 of every 4 dollars still come from advertising — a money machine, but a concentration risk. Cloud is the fast-growing newcomer.",
+    trend:{labels:["Q4'24","Q1'25","Q2'25","Q3'25","Q4'25","Q1'26"],vals:[96.5,90.2,96.4,102.3,113.8,109.9]},
+    trendNote:"Crossed its first-ever $100B quarter in Q3 2025. Q1 dips each year are seasonal.",
+    metrics:[
+      {ic:"🧮",k:"OPERATING MARGIN",val:"36.1%",note:"profit kept per $1 of sales",pill:["good","Very healthy"]},
+      {ic:"⚙️",k:"CORE OPERATING PROFIT",val:"$39.7B",note:"one quarter, +30% YoY",pill:["good","Strong"]},
+      {ic:"🌊",k:"CASH FROM OPS",val:"$174B",note:"over 12 months",pill:["good","Cash machine"]},
+      {ic:"🏗️",k:"2026 CAPEX PLAN",val:"$180–190B",note:"AI data centres",pill:["watch","Big spend"]},
+      {ic:"📊",k:"RETURN ON EQUITY",val:"38.9%",note:"profit on owners' money",pill:["good","Excellent"]},
+      {ic:"💵",k:"DIVIDEND",val:"$0.88/yr",note:"raised 5% · 0.24%",pill:["good","Growing"]},
+      {ic:"🧾",k:"TOTAL DEBT",val:"≈$100B",note:"small vs cash flow",pill:["good","Comfortable"]},
+      {ic:"👥",k:"PAID SUBSCRIBERS",val:"350M",note:"YouTube, One, Gemini",pill:["good","Rising"]},
+    ],
+    earningsTrap:"Last quarter's headline net income of <b>$62.6B</b> was inflated by a <b>$37.7B one-time paper gain</b> on investments. The number reflecting the actual business is the <b>$39.7B operating profit</b>. Don't be fooled by a spiking 'net profit'.",
+    range:{low:162.00,high:408.61,now:368.53,note:"52-week low Jun 2025 → high May 2026",
+      support:[330,345],resistance:[400,410],
+      entryNote:"Chart-watchers point to the ~$330–345 area the stock bounced from this spring. Buyers have tended to step in there.",
+      exitNote:"The recent high near $400–410 is where it has stalled. Above that and holding = a 'breakout'."},
+    score:7,
+    dd:`
+    <h3>🏢 Business model</h3>
+    <p>Fundamentally an advertising company wearing an AI cloak: ~3/4 of revenue is ad-driven (Search + YouTube + Network), with Google Cloud as the new growth engine, now solidly profitable.</p>
+    <h3>💰 Financials</h3>
+    <p>Elite. ~$174B operating cash flow over 12 months, 36% operating margin, ~39% ROE. The catch: 2026 capex of $180–190B (roughly double 2025) is so large that despite that cash machine, Alphabet is raising ~$80B of fresh equity (Berkshire took $10B) plus $85B+ of debt. New shares dilute existing owners.</p>
+    <h3>🔭 Outlook (6–18 mo)</h3>
+    <p>Cloud backlog >$460B and 350M paid subscriptions point to a real pipeline. Expect ~12–18% total growth, Cloud decelerating from 63% (unavoidable off a bigger base) but staying strong, and margins squeezed as depreciation from the capex wave lands.</p>
+    <h3>📏 Valuation vs its own history</h3>
+    <p>The uncomfortable truth: after +112% in a year, Alphabet is <b>no longer the cheap megacap</b>. At ~26–29× forward it sits at the top of its 10-year range (mostly 18–24×) and at the expensive end of its peer group, alongside Amazon. Meta is cheaper for similar growth.</p>
+    <h3>🚀 Catalysts</h3>
+    <p>Gemini momentum, Cloud acceleration, Waymo scaling (>500k rides/week), and continued margin expansion if AI monetisation outpaces capex.</p>
+    <div class="bear">
+      <h3 style="margin-top:0">🐻 Bear case</h3>
+      <b>1. Search disintermediation</b> — ~55% of revenue comes from the single franchise most exposed to AI chat (ChatGPT, Perplexity, Apple/Meta assistants). For 25 years Search had no real substitute; now it does.<br>
+      <b>2. Capex bomb</b> — ~$190B doubling means years of depreciation; if cloud demand or pricing softens, the 36% margin compresses.<br>
+      <b>3. Priced for perfection</b> — the AI-winner story is already in the multiple; "good" instead of "great" means compression.<br>
+      <b>4. The earnings mirage</b> — TTM EPS is flattered by tens of billions of unrealised gains, so the "cheap 28×" is really mid-30s on core earnings.<br>
+      <b>5. Regulatory tail</b> — DOJ + 38 states are appealing for tougher remedies (Chrome divestiture back at the appeals court late 2026/2027); a separate ad-tech ruling looms; EU fined it €2.95B in Jan 2026.
+    </div>
+    <div class="invalid">
+      <h3>🚨 Invalidation level — where the thesis breaks</h3>
+      <b>Fundamental (the real stop):</b> Search growth decelerating toward/below ~10% for two straight quarters, OR operating margin below ~30%, OR Cloud growth below ~25–30%.<br>
+      <b>Price:</b> a sustained break below <b>~$300</b> says the market is rejecting the re-rating; a decisive weekly close below <b>~$270</b> means the uptrend is broken.
+    </div>`,
+    oneLiner:"Elite, accelerating business — but after +112% it's priced as a winner, so most AI upside is in the price and the margin of safety is thin.",
+  },
+
+  MSFT:{
+    name:"Microsoft Corp.", tickers:["MSFT"], glyph:"⊞",
+    gradient:"conic-gradient(from 160deg,#5FC9A0,#4F90D4,#FFC65C,#5FC9A0)",
+    where:"Software, Azure cloud & AI · Nasdaq, USA", asof:"Snapshot ~Jun 2026 (enable live for exact price)",
+    price:420.00, change:0, changePct:0,
+    chips:[["~$3.1T","Market cap"],["~$280B","Revenue (TTM)"],["~22–25×","Fwd P/E"],["~0.9%","Div yield"],["Azure +40%","Cloud growth"]],
+    blurb:"The broadest enterprise-AI play: Windows, Office/Microsoft 365, the Azure cloud, LinkedIn, Xbox, and a deep partnership across the AI stack. Copilot is being stitched into everything.",
+    drivers:[
+      {name:"Intelligent Cloud (Azure)",color:"#5FC9A0",growth:"+39–40%",desc:"The growth engine — Azure plus enterprise AI infrastructure."},
+      {name:"Productivity & Business Processes",color:"#4F90D4",growth:"steady",desc:"Microsoft 365, Copilot seats (20M+ paid), LinkedIn, Dynamics."},
+      {name:"More Personal Computing",color:"#FFC65C",growth:"−3%",desc:"Windows OEM, devices, gaming — the soft spot, tied to the PC cycle."},
+    ],
+    driverNote:"Azure (inside Intelligent Cloud) is the story; every paid Copilot seat layers extra revenue on an already-entrenched Office base.",
+    metrics:[
+      {ic:"🧮",k:"OPERATING MARGIN",val:"~44–46%",note:"among the best at scale",pill:["good","Elite"]},
+      {ic:"☁️",k:"AZURE GROWTH",val:"+39–40%",note:"constant currency",pill:["good","Accelerating"]},
+      {ic:"📦",k:"BACKLOG (RPO)",val:"~$625B",note:"contracted future revenue",pill:["good","Locked in"]},
+      {ic:"🏗️",k:"2026 CAPEX",val:"~$190B",note:"+61%, AI data centres",pill:["watch","Heavy"]},
+      {ic:"🧾",k:"GROSS MARGIN",val:"~67.6%",note:"narrowest since 2022 (depreciation)",pill:["watch","Compressing"]},
+      {ic:"🤖",k:"COPILOT SEATS",val:"20M+",note:"paid commercial seats",pill:["good","Growing"]},
+    ],
+    range:{low:344.79,high:555.45,now:420.00,note:"52-week low → high (approx current; enable live)",
+      support:[345,375],resistance:[520,555],
+      entryNote:"The ~$345–375 area near the 52-week low is where it has based; buyers reappeared there.",
+      exitNote:"The ~$520–555 prior-high band is where the stock previously stalled."},
+    score:8,
+    dd:`
+    <h3>🏢 Business model</h3>
+    <p>The most diversified big-tech: recurring software subscriptions + the #2 cloud (Azure) + an AI distribution layer (Copilot) on top of ~400M Office seats. Earnings quality is exceptional.</p>
+    <h3>💰 Financials</h3>
+    <p>Fortress balance sheet, ~44–46% operating margin, huge free cash flow. The pressure point: capex jumping ~61% to ~$190B is compressing gross margin to its lowest since 2022 as data-centre depreciation mounts.</p>
+    <h3>📏 Valuation vs its own history</h3>
+    <p>Unusually, MSFT trades at ~22–25× forward — its <b>cheapest multiple in years</b> versus a 10-year average near 29×. If you believe the business is higher-quality than a decade ago (it is), that's a rare discount.</p>
+    <h3>🚀 Catalysts</h3>
+    <p>Sustained 35%+ Azure growth, Copilot seat monetisation, RPO conversion. Bulls see $600+ targets if AI revenue keeps pace with spend.</p>
+    <div class="bear">
+      <h3 style="margin-top:0">🐻 Bear case</h3>
+      <b>1. Monetisation vs spend</b> — the whole debate is whether AI revenue arrives fast enough to justify ~$190B capex; if not, "$370 becomes the ceiling, not the floor."<br>
+      <b>2. Margin erosion</b> — depreciation is already pulling gross margin to multi-year lows.<br>
+      <b>3. PC/gaming drag</b> — More Personal Computing is shrinking.<br>
+      <b>4. OpenAI dependency</b> — strategic and financial entanglement cuts both ways.
+    </div>
+    <div class="invalid">
+      <h3>🚨 Invalidation level</h3>
+      <b>Fundamental:</b> Azure growth decelerating below ~30%, OR operating margin slipping below ~40%, OR Copilot seat growth stalling.<br>
+      <b>Price:</b> a sustained break below <b>~$345</b> (the 52-week low zone) would say the AI-cloud thesis is being repriced.
+    </div>`,
+    oneLiner:"The most diversified, highest-quality AI-cloud play, now at its cheapest multiple versus its own history in years — quality at a rare discount, if the capex pays off.",
+  },
+
+  META:{
+    name:"Meta Platforms, Inc.", tickers:["META"], glyph:"∞",
+    gradient:"conic-gradient(from 210deg,#4F90D4,#B79CE0,#4F90D4)",
+    where:"Facebook, Instagram, WhatsApp · Nasdaq, USA", asof:"Snapshot ~Jun 2026 (enable live for exact price)",
+    price:600.00, change:0, changePct:0,
+    chips:[["~$1.5T","Market cap"],["$215B","Revenue (2025)"],["~18×","Fwd P/E"],["~33%","ROE"],["−8%","Past 12 mo"]],
+    blurb:"The world's best attention-capture engine: Facebook, Instagram, WhatsApp and Threads, monetised almost entirely through AI-targeted advertising. Plus a giant, loss-making bet on AI 'superintelligence' and the metaverse (Reality Labs).",
+    drivers:[
+      {name:"Family of Apps (advertising)",color:"#4F90D4",growth:"+22%",desc:"~98% of revenue — ads across FB, Instagram, WhatsApp, powered by Advantage+ AI tools."},
+      {name:"Reality Labs",color:"#B79CE0",growth:"loss-making",desc:"AR/VR headsets and the metaverse — tiny revenue, large ongoing operating losses."},
+    ],
+    driverNote:"Meta is essentially one enormous, very profitable ad business funding a moonshot. Q1 2026 revenue $56.3B with a ~47% operating margin.",
+    metrics:[
+      {ic:"🧮",k:"OPERATING MARGIN",val:"~47%",note:"highest of the group",pill:["good","Elite"]},
+      {ic:"📈",k:"REVENUE GROWTH",val:"+22%",note:"Q1'26 $56.3B",pill:["good","Strong"]},
+      {ic:"📊",k:"RETURN ON EQUITY",val:"~33%",note:"very efficient",pill:["good","Excellent"]},
+      {ic:"🏗️",k:"2026 CAPEX",val:"$125–145B",note:"raised again this year",pill:["watch","Climbing"]},
+      {ic:"🥽",k:"REALITY LABS",val:"big loss",note:"ongoing cash burn",pill:["bad","Drag"]},
+      {ic:"✂️",k:"COST DISCIPLINE",val:"~8,000 cuts",note:"reallocating to AI",pill:["watch","Restructuring"]},
+    ],
+    range:{low:520.26,high:794.38,now:600.00,note:"52-week low → high (approx current; enable live)",
+      support:[520,555],resistance:[755,795],
+      entryNote:"The ~$520–555 zone near the 52-week low is the area buyers have defended.",
+      exitNote:"The ~$755–795 prior-high band is where it ran out of steam before."},
+    score:8,
+    dd:`
+    <h3>🏢 Business model</h3>
+    <p>One toll booth on global attention. Over 3 billion daily users; ads are sold via increasingly automated, AI-driven tools (Advantage+) that keep lifting price and efficiency.</p>
+    <h3>💰 Financials</h3>
+    <p>The fattest margins of the group (~47% operating), strong ROE, big buybacks and a dividend. 2026 expenses guided to $162–169B, with capex raised to $125–145B for AI.</p>
+    <h3>📏 Valuation vs its own history</h3>
+    <p>At ~18× forward, Meta is the <b>cheapest megacap</b> here and trades below its own typical multiple, partly because the stock pulled back ~8% over the year. Best growth-adjusted value in the group — if you tolerate the risks.</p>
+    <h3>🚀 Catalysts</h3>
+    <p>AI ad-tool monetisation, paid 'Meta AI' assistant tiers, a possible move into selling spare cloud capacity, and any sign Reality Labs losses are capped.</p>
+    <div class="bear">
+      <h3 style="margin-top:0">🐻 Bear case</h3>
+      <b>1. Single-product concentration</b> — ~all profit is ads; a regulatory hit (EU/US) or ad-market downturn hits everything at once.<br>
+      <b>2. The Reality Labs / 'superintelligence' money pit</b> — tens of billions of losses with no proven payoff, now joined by enormous AI capex.<br>
+      <b>3. Regulatory & legal</b> — EU headwinds, teen-safety scrutiny, and a scam-ads lawsuit alleging billions of bad ads daily.<br>
+      <b>4. Engagement saturation</b> — growth increasingly depends on price per ad, not new users.
+    </div>
+    <div class="invalid">
+      <h3>🚨 Invalidation level</h3>
+      <b>Fundamental:</b> ad revenue growth below ~10%, OR operating margin below ~35% as AI/Reality Labs burn bites, OR falling daily users.<br>
+      <b>Price:</b> a sustained break below <b>~$520</b> (the 52-week low) breaks the trend.
+    </div>`,
+    oneLiner:"The cheapest megacap on forward earnings with the fattest margins and 22% growth — the catch is ad concentration plus a bottomless Reality Labs/AI spend.",
+  },
+
+  AMZN:{
+    name:"Amazon.com, Inc.", tickers:["AMZN"], glyph:"a",
+    gradient:"conic-gradient(from 200deg,#FFC65C,#FF9E80,#FFC65C)",
+    where:"E-commerce, AWS cloud & ads · Nasdaq, USA", asof:"Snapshot ~Jun 2026 (enable live for exact price)",
+    price:265.00, change:0, changePct:0,
+    chips:[["~$2.85T","Market cap"],["$742.8B","Revenue (TTM)"],["~31×","Fwd P/E"],["+28.8%","Past 12 mo"],["AWS +28%","Cloud growth"]],
+    blurb:"Three businesses in one: the world's biggest online store, the world's biggest cloud (AWS), and a fast-growing ads business — plus newer bets in robotics, custom AI chips and satellite broadband (Leo).",
+    segments:[
+      {name:"North America retail",val:104.1,color:"#FF9E80",growth:"+12%",desc:"Online stores + 3rd-party sellers in the US/Canada."},
+      {name:"International retail",val:39.8,color:"#FFC65C",growth:"+11%",desc:"Stores outside North America (lower margin)."},
+      {name:"AWS (cloud)",val:37.6,color:"#5FC9A0",growth:"+28%",desc:"The profit engine — cloud + AI infrastructure. $364B backlog."},
+    ],
+    segNote:"Retail is huge but thin-margin; AWS is smaller but generates most of the profit. Ads ($17.2B, +22%) sit inside these segments and are a rising third pillar.",
+    metrics:[
+      {ic:"🧮",k:"OPERATING MARGIN",val:"13.1%",note:"record high, but lowest of group",pill:["watch","Improving"]},
+      {ic:"☁️",k:"AWS GROWTH",val:"+28%",note:"fastest in 15 quarters",pill:["good","Re-accelerating"]},
+      {ic:"📦",k:"AWS BACKLOG",val:"$364B",note:"+ a $100B Anthropic deal",pill:["good","Loaded"]},
+      {ic:"📢",k:"ADS REVENUE",val:"$17.2B",note:"+22% YoY",pill:["good","Rising pillar"]},
+      {ic:"🏗️",k:"2026 CAPEX",val:"~$200B",note:"biggest of the group",pill:["watch","Enormous"]},
+      {ic:"📊",k:"RETURN ON EQUITY",val:"~24%",note:"solid, improving",pill:["good","Healthy"]},
+    ],
+    range:{low:195.00,high:285.00,now:265.00,note:"approx 52-week range; enable live for exact",
+      support:[200,222],resistance:[278,290],
+      entryNote:"The ~$200–222 lower area is roughly where buyers have stepped in.",
+      exitNote:"The ~$278–290 band near the highs is where it has tended to stall."},
+    score:7,
+    dd:`
+    <h3>🏢 Business model</h3>
+    <p>A retail giant that happens to own the most profitable cloud on earth. Margins are finally expanding as AWS, advertising and retail efficiency all improve together.</p>
+    <h3>💰 Financials</h3>
+    <p>Record 13.1% operating margin in Q1 2026 — still the thinnest of the group because retail is low-margin. AWS at a ~$150B run-rate is the profit driver. Capex of ~$200B (the largest here) is squeezing free cash flow hard.</p>
+    <h3>📏 Valuation vs its own history</h3>
+    <p>At ~31× forward, Amazon is the <b>most expensive</b> of the four. That's normal for Amazon — it has almost always looked pricey on earnings because it deliberately reinvests profit. The bet is on margin expansion, not a cheap multiple.</p>
+    <h3>🚀 Catalysts</h3>
+    <p>AWS AI revenue (triple-digit growth), custom Trainium chips (>$20B run-rate), agentic-commerce (Rufus), advertising scaling, and the Leo satellite launch late 2026.</p>
+    <div class="bear">
+      <h3 style="margin-top:0">🐻 Bear case</h3>
+      <b>1. Capex vs cash flow</b> — ~$200B spend has sent free-cash-flow growth sharply negative; the margin story has to keep delivering or the multiple looks unjustified.<br>
+      <b>2. Thin-margin core</b> — retail (esp. international at ~3.6% margin) dilutes the whole; a consumer slowdown hits the biggest segment.<br>
+      <b>3. Highest multiple, most to prove</b> — at ~31× you're paying up for execution that must continue flawlessly.<br>
+      <b>4. AWS competition</b> — Azure and Google Cloud are growing faster off smaller bases.
+    </div>
+    <div class="invalid">
+      <h3>🚨 Invalidation level</h3>
+      <b>Fundamental:</b> AWS growth back below ~20%, OR operating margin reverting below ~9–10%, OR capex rising without matching margin gains.<br>
+      <b>Price:</b> a sustained break below <b>~$215–220</b> would signal the margin-expansion thesis is being rejected.
+    </div>`,
+    oneLiner:"Three growth engines (AWS, ads, retail margin) finally firing at once — but you pay the highest multiple of the group for the thinnest margins and the biggest capex bill.",
+  },
+};
+CURATED.GOOG = CURATED.GOOGL; // Class C maps to same analysis
+
+/* ---------------- HELPERS ---------------- */
+let charts=[];
+function clearCharts(){charts.forEach(c=>{try{c.destroy()}catch(e){}});charts=[];}
+const fmtMoney=n=>{ if(n==null||isNaN(n))return"—";
+  if(Math.abs(n)>=1e12)return"$"+(n/1e12).toFixed(2)+"T";
+  if(Math.abs(n)>=1e9)return"$"+(n/1e9).toFixed(1)+"B";
+  if(Math.abs(n)>=1e6)return"$"+(n/1e6).toFixed(1)+"M";
+  return"$"+n.toFixed(2); };
+const fmtPx=n=>n==null||isNaN(n)?"—":"$"+Number(n).toFixed(2);
+const pct=n=>n==null||isNaN(n)?"—":(n>0?"+":"")+Number(n).toFixed(1)+"%";
+
+/* ---------------- DAILY NEWS (Finnhub company-news) ---------------- */
+const escapeHtml=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function newsSectionHTML(){
+  return `<section><div class="sec-head"><span class="e">📰</span><h2>Latest news</h2></div>
+    <p class="sec-sub">Recent headlines so you can see the story behind the price. Tap any to read the full article at the source.</p>
+    <div class="card" id="newsWrap" style="min-height:70px">
+      <div class="loading" style="padding:22px" id="newsMsg">${apiKey?'<div class="spin"></div>Loading headlines…':'🔑 Turn on Live data (top right) to see the latest news for this stock.'}</div>
+    </div></section>`;
+}
+async function loadNews(symbol){
+  const wrap=document.getElementById('newsWrap'), msg=document.getElementById('newsMsg');
+  if(!wrap||!apiKey) return;
+  try{
+    const f=d=>d.toISOString().slice(0,10);
+    const to=new Date(), from=new Date(Date.now()-14*864e5);
+    const url=`https://finnhub.io/api/v1/company-news?symbol=${encodeURIComponent(symbol)}&from=${f(from)}&to=${f(to)}&token=${apiKey}`;
+    let items=await fetch(url).then(r=>r.json());
+    if(!Array.isArray(items)||!items.length){ msg.innerHTML='📭 No recent headlines found for '+escapeHtml(symbol)+' in the last two weeks.'; return; }
+    items=items.filter(n=>n.headline&&n.url).slice(0,7);
+    wrap.innerHTML=items.map(n=>{
+      const dt=new Date(n.datetime*1000);
+      const when=dt.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      let sum=n.summary?escapeHtml(n.summary):'';
+      if(sum.length>160) sum=sum.slice(0,160).replace(/\s+\S*$/,'')+'…';
+      return `<a class="newsrow" href="${encodeURI(n.url)}" target="_blank" rel="noopener">
+        <span class="nico">📄</span>
+        <span><span class="nhead">${escapeHtml(n.headline)}</span>
+          <span class="nmeta" style="display:block">${escapeHtml(n.source||'')} · ${when}</span>
+          ${sum?`<span class="nsum" style="display:block">${sum}</span>`:''}</span>
+        <span class="narrow">↗</span></a>`;
+    }).join('');
+  }catch(e){ if(msg) msg.innerHTML='⚠️ Couldn\'t load news — check your Finnhub key or try again in a moment.'; }
+}
+
+/* ---------------- PRICE HISTORY (Twelve Data) ---------------- */
+function historySectionHTML(){
+  return `<section><div class="sec-head"><span class="e">🕰️</span><h2>Price history (past year)</h2></div>
+    <p class="sec-sub">The actual daily closing price — so you can see the real trend behind the support &amp; resistance zones.</p>
+    <div class="card"><div id="histWrap" style="min-height:160px">
+      <div class="loading" style="padding:30px" id="histMsg">${histKey?'<div class="spin"></div>Loading price history…':'🕰️ Add a free <b>Twelve Data</b> key (tap 🔑 Live data) to see the real price chart here.'}</div>
+      <canvas id="histChart" height="200" class="hide"></canvas>
+    </div></div></section>`;
+}
+async function loadHistory(symbol){
+  const canvas=document.getElementById('histChart'), msg=document.getElementById('histMsg');
+  if(!canvas) return;
+  if(!histKey){return;} // message already shown
+  try{
+    const url=`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(symbol)}&interval=1day&outputsize=260&apikey=${histKey}`;
+    const res=await fetch(url).then(r=>r.json());
+    if(res.status==='error'||!res.values){ msg.innerHTML=`⚠️ Couldn't load history: ${res.message||'check your Twelve Data key or daily limit'}.`; return; }
+    const rows=res.values.slice().reverse(); // oldest first
+    const labels=rows.map(r=>r.datetime);
+    const closes=rows.map(r=>parseFloat(r.close));
+    msg.classList.add('hide'); canvas.classList.remove('hide');
+    charts.push(new Chart(canvas,{type:'line',
+      data:{labels,datasets:[{data:closes,borderColor:'#4F90D4',borderWidth:2,pointRadius:0,tension:.2,fill:true,
+        backgroundColor:c=>{const g=c.chart.ctx.createLinearGradient(0,0,0,200);
+          g.addColorStop(0,'rgba(79,144,212,.30)');g.addColorStop(1,'rgba(79,144,212,0)');return g;}}]},
+      options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' $'+c.raw.toFixed(2)},backgroundColor:'#4A3B33'}},
+        scales:{y:{ticks:{callback:v=>'$'+v,font:{family:'Nunito'}},grid:{color:'#F0E2D6'}},
+          x:{ticks:{maxTicksLimit:7,font:{family:'Nunito'}},grid:{display:false}}}}}));
+  }catch(e){ if(msg) msg.innerHTML='⚠️ History request failed — check your Twelve Data key.'; }
+}
+
+/* ---------------- PRICE ALERTS ---------------- */
+let watches=[]; // {ticker, target, hit}
+let watchTimer=null;
+function toast(text){
+  const t=document.getElementById('toast'); t.innerHTML=text; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),5200);
+}
+function notify(title,body){
+  toast('🔔 '+body);
+  try{
+    if('Notification' in window){
+      if(Notification.permission==='granted'){ new Notification(title,{body}); }
+      else if(Notification.permission!=='denied'){ Notification.requestPermission(); }
+    }
+  }catch(e){}
+}
+function renderWatches(){
+  const el=document.getElementById('watchList');
+  document.getElementById('bellBtn').innerHTML='🔔 Alerts'+(watches.length?`<span class="badge">${watches.length}</span>`:'');
+  if(!watches.length){el.innerHTML='<p style="font-size:.85rem;color:var(--muted);margin-top:12px">No alerts yet. Add a ticker and a price below, or tap "Alert me near support" on any stock.</p>';return;}
+  el.innerHTML=watches.map((w,i)=>`<div class="watchrow ${w.hit?'hit':''}">
+    <div class="top"><span class="tk">${w.ticker}</span>
+      <span style="font-size:.82rem;color:var(--muted)">alert at ${fmtPx(w.target)}</span>
+      <button class="x" onclick="removeWatch(${i})">✕</button></div>
+    <div class="stat">${w.last!=null?`now ${fmtPx(w.last)} · ${w.hit?'🟢 reached!':((w.last-w.target)/w.target*100).toFixed(1)+'% away'}`:'checking…'}</div>
+  </div>`).join('');
+}
+function quickWatch(ticker,price){
+  if(!apiKey){toast('🔑 Turn on Live data first (top-right) so alerts can check prices.');document.getElementById('keyPanel').classList.add('open');return;}
+  addWatch(ticker,price);
+  document.getElementById('alertsPanel').classList.add('open');
+}
+function addWatch(ticker,target){
+  ticker=(ticker||'').toUpperCase().trim(); target=parseFloat(target);
+  if(!ticker||isNaN(target)){toast('Enter a ticker and a price.');return;}
+  if(watches.some(w=>w.ticker===ticker&&Math.abs(w.target-target)<0.01)){toast('That alert already exists.');return;}
+  watches.push({ticker,target,hit:false,last:null});
+  try{if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();}catch(e){}
+  renderWatches(); checkWatches();
+}
+function removeWatch(i){watches.splice(i,1);renderWatches();}
+async function checkWatches(){
+  if(!apiKey||!watches.length)return;
+  for(const w of watches){
+    try{
+      const q=await fetch(`https://finnhub.io/api/v1/quote?symbol=${w.ticker}&token=${apiKey}`).then(r=>r.json());
+      if(q&&q.c){ w.last=q.c;
+        if(!w.hit && q.c<=w.target){ w.hit=true; notify(`${w.ticker} reached your level`,`${w.ticker} is at ${fmtPx(q.c)} — your alert price was ${fmtPx(w.target)}.`); }
+        if(w.hit && q.c>w.target*1.03){ w.hit=false; } // reset if it climbs back >3% above
+      }
+    }catch(e){}
+  }
+  renderWatches();
+}
+
+
+function renderCurated(d){
+  clearCharts();
+  const up=d.change>=0;
+  const dArc=Math.round(d.score/10*360);
+  let html=`
+  <div class="hero">
+    <div class="scorebadge" style="--deg:${dArc}deg"><div class="in"><b>${d.score}</b><small>/10</small></div></div>
+    <div class="hero-top">
+      <div class="glyph" style="background:${d.gradient}">${d.glyph}</div>
+      <div>
+        <h1>${d.name} ${d.tickers.map((t,i)=>`<span class="ticker-chip"${i?' style="background:var(--lav)"':''}>${t}</span>`).join('')}</h1>
+        <div class="where">${d.where}</div>
+      </div>
+    </div>
+    <div class="price-row">
+      <div>
+        <div class="bigprice">${fmtPx(d.price)}</div>
+        ${d.changePct?`<span class="chg ${up?'up':'down'}">${up?'▲':'▼'} ${pct(d.changePct)} today</span>`:`<span class="chg" style="background:var(--cream2);color:var(--muted)">price snapshot</span>`}
+      </div>
+      <div class="asof">📅 ${d.asof}<br>prices in USD</div>
+    </div>
+    <div class="chips">${d.chips.map(c=>`<div class="chip"><b>${c[0]}</b><span>${c[1]}</span></div>`).join('')}</div>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="e">🏢</span><h2>What is it?</h2></div>
+    <p class="sec-sub">${d.blurb}</p>
+  </section>`;
+
+  // Daily news
+  html+=newsSectionHTML();
+
+  // How it makes money
+  html+=`<section><div class="sec-head"><span class="e">💸</span><h2>How does it make money?</h2></div>`;
+  if(d.segments){
+    html+=`<p class="sec-sub">Where revenue came from in the most recent quarter ($ billions). Hover a slice for the amount.</p>
+    <div class="card"><div class="split">
+      <div class="chartbox"><canvas id="revPie"></canvas></div>
+      <div class="seglist">${d.segments.map(s=>`
+        <div class="segitem"><span class="dot" style="background:${s.color}"></span>
+          <div style="flex:1;min-width:0"><div class="t">${s.name}</div><p>${s.desc}</p></div>
+          <div class="v"><b>$${s.val}B</b><small>${s.growth} YoY</small></div></div>`).join('')}
+      </div></div>
+      <div class="explainer" style="margin-bottom:0"><div class="lbl">💡 The big takeaway</div>${d.segNote}</div>
+    </div>`;
+  } else if(d.drivers){
+    html+=`<p class="sec-sub">Its main revenue drivers and how fast they're growing.</p>
+    <div class="card">${d.drivers.map(s=>`
+      <div class="segitem" style="margin-bottom:10px"><span class="dot" style="background:${s.color}"></span>
+        <div style="flex:1;min-width:0"><div class="t">${s.name}</div><p>${s.desc}</p></div>
+        <div class="v"><small style="font-size:.82rem;font-weight:800;color:var(--ink)">${s.growth}</small></div></div>`).join('')}
+      <div class="explainer" style="margin-bottom:0"><div class="lbl">💡 The big takeaway</div>${d.driverNote}</div>
+    </div>`;
+  }
+  html+=`</section>`;
+
+  // Growth trend (if available)
+  if(d.trend){
+    html+=`<section><div class="sec-head"><span class="e">📈</span><h2>Is it growing?</h2></div>
+      <p class="sec-sub">Total revenue over the last six quarters ($ billions).</p>
+      <div class="card"><canvas id="trendChart" height="200"></canvas>
+        <p style="font-size:.82rem;color:var(--muted);margin-top:12px">${d.trendNote}</p></div></section>`;
+  }
+
+  // Price history
+  html+=historySectionHTML();
+
+  // Financial strength
+  html+=`<section><div class="sec-head"><span class="e">💪</span><h2>How strong are the finances?</h2></div>
+    <p class="sec-sub">The report card: keeps profit from each sale, generates cash, isn't over-borrowed.</p>
+    <div class="grid g4">${d.metrics.map(m=>`
+      <div class="metric"><div class="ic">${m.ic}</div><div class="k">${m.k}</div>
+        <div class="val">${m.val}</div><div class="note">${m.note}</div>
+        <span class="pill ${m.pill[0]}">${m.pill[1]}</span></div>`).join('')}</div>`;
+  if(d.earningsTrap){
+    html+=`<div class="explainer"><div class="lbl">💡 A trap to avoid: the "net profit" headline</div>${d.earningsTrap}</div>`;
+  }
+  html+=`</section>`;
+
+  // Support & resistance + entry/exit zones
+  const r=d.range, p=(r.now-r.low)/(r.high-r.low)*100;
+  const bandPos=z=>{const l=(z[0]-r.low)/(r.high-r.low)*100, w=(z[1]-z[0])/(r.high-r.low)*100;
+    return `left:${Math.max(0,l)}%;width:${Math.max(2,w)}%`;};
+  html+=`<section><div class="sec-head"><span class="e">📐</span><h2>Support, resistance &amp; rough entry/exit zones</h2></div>
+    <p class="sec-sub">Price <i>zones</i> where buyers (support, the green floor) or sellers (resistance, the red ceiling) have tended to show up. The black marker is today. This is context — not a buy/sell signal.</p>
+    <div class="card">
+      <div class="rangebar">
+        ${r.support?`<div class="band sup" style="${bandPos(r.support)}"></div>`:''}
+        ${r.resistance?`<div class="band res" style="${bandPos(r.resistance)}"></div>`:''}
+        <div class="now" style="left:calc(${p}% - 3px)"></div>
+        <div class="nowlabel" style="left:${p}%">Now ${fmtPx(r.now)}</div>
+      </div>
+      <div class="rangeends"><div><b>${fmtPx(r.low)}</b>52-week low</div><div style="text-align:right"><b>${fmtPx(r.high)}</b>52-week high</div></div>
+      ${(r.support||r.resistance)?`<div class="zone">
+        <div class="zonebox sup"><h3>🟢 Support — roughly where to watch buying</h3>
+          <div class="zp">$${r.support[0]}–$${r.support[1]}</div><p>${r.entryNote}</p></div>
+        <div class="zonebox res"><h3>🔴 Resistance — roughly where it stalls</h3>
+          <div class="zp">$${r.resistance[0]}–$${r.resistance[1]}</div><p>${r.exitNote}</p></div>
+      </div>`:''}
+      <div class="explainer" style="margin-bottom:0"><div class="lbl">💡 Use it as a zone, not a number</div>${r.note}. Different chart-watchers draw slightly different lines, so treat any level as a rough area. <span class="term">Moving averages<span class="tip">The average price over the last 50 or 200 days — price often reacts around these lines.</span></span> are a common way to spot them.</div>
+      ${r.support?`<button class="watchbtn" onclick="quickWatch('${d.tickers[0]}',${r.support[1]})">🔔 Alert me near support ($${r.support[1]})</button>`:''}
+    </div></section>`;
+  html+=ENTRY_EXIT;
+
+  // Analyst deep dive
+  html+=`<section><div class="sec-head"><span class="e">🔬</span><h2>Analyst deep dive</h2></div>
+    <p class="sec-sub">Acting as an equity analyst — business, financials, valuation, the bull/bear, and a specific level where the thesis breaks. Analysis, not advice.</p>
+    <div class="card dd">${d.dd}
+      <div class="bull" style="margin-top:16px"><b>📊 Overall score: ${d.score}/10</b><br>${d.oneLiner}</div>
+    </div></section>`;
+
+  // Peer table
+  html+=PEER_TABLE;
+
+  // Disclaimer
+  html+=`<div class="disc"><b>📋 Education, not advice.</b><br>
+    MoneyMochi is an educational tool. It is <b>not</b> financial advice and contains <b>no recommendation</b> to buy, sell or hold. The 1–10 score and invalidation levels are an analytical framework, not instructions to trade. Company figures are from Q1 2026 results; the GOOGL price is as of 7 Jun 2026, and MSFT/META/AMZN prices are approximate snapshots — turn on Live data for exact, current prices. Stocks fall as well as rise and you can lose money. Do your own research.<br><br>
+    <span style="color:var(--muted)">Sources: company Q1 2026 earnings releases & SEC filings; market data from Morningstar / CNBC / Investing.com / GuruFocus as of early June 2026.</span></div>`;
+
+  document.getElementById('stockView').innerHTML=html;
+
+  // build charts
+  if(d.segments){
+    charts.push(new Chart(document.getElementById('revPie'),{type:'doughnut',
+      data:{labels:d.segments.map(s=>s.name),datasets:[{data:d.segments.map(s=>s.val),
+        backgroundColor:d.segments.map(s=>s.color),borderColor:'#fff',borderWidth:4,hoverOffset:10}]},
+      options:{cutout:'62%',plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>` ${c.label}: $${c.raw}B`},backgroundColor:'#4A3B33',padding:10}}}}));
+  }
+  if(d.trend){
+    charts.push(new Chart(document.getElementById('trendChart'),{type:'line',
+      data:{labels:d.trend.labels,datasets:[{data:d.trend.vals,borderColor:'#FF9E80',borderWidth:3,
+        pointBackgroundColor:'#fff',pointBorderColor:'#FF9E80',pointBorderWidth:3,pointRadius:5,tension:.35,fill:true,
+        backgroundColor:c=>{const g=c.chart.ctx.createLinearGradient(0,0,0,200);
+          g.addColorStop(0,'rgba(255,158,128,.35)');g.addColorStop(1,'rgba(255,158,128,0)');return g;}}]},
+      options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.raw}B`},backgroundColor:'#4A3B33'}},
+        scales:{y:{ticks:{callback:v=>'$'+v+'B',font:{family:'Nunito'}},grid:{color:'#F0E2D6'}},
+          x:{ticks:{font:{family:'Nunito',weight:'700'}},grid:{display:false}}}}}));
+  }
+  loadHistory(d.tickers[0]);
+  loadNews(d.tickers[0]);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------------- RENDER A LIVE STOCK ---------------- */
+function renderLive(ticker,q,prof,m){
+  clearCharts();
+  const price=q.c, prev=q.pc, chg=q.d, chgp=q.dp, up=chg>=0;
+  const mc=prof.marketCapitalization?prof.marketCapitalization*1e6:null;
+  const get=(...keys)=>{for(const k of keys){if(m[k]!=null&&!isNaN(m[k]))return m[k];}return null;};
+  const pe=get('peTTM','peBasicExclExtraTTM','peExclExtraTTM');
+  const ps=get('psTTM');
+  const roe=get('roeTTM');
+  const opm=get('operatingMarginTTM');
+  const npm=get('netProfitMarginTTM');
+  const gm=get('grossMarginTTM');
+  const eps=get('epsTTM','epsBasicExclExtraItemsTTM');
+  const revg=get('revenueGrowthTTMYoy','revenueGrowthQuarterlyYoy');
+  const dy=get('currentDividendYieldTTM','dividendYieldIndicatedAnnual');
+  const de=get('totalDebt/totalEquityQuarterly','totalDebt/totalEquityAnnual');
+  const hi=get('52WeekHigh'), lo=get('52WeekLow');
+
+  const chips=[
+    [mc?fmtMoney(mc):"—","Market cap"],
+    [pe!=null?pe.toFixed(1)+"×":"—","P/E (TTM)"],
+    [ps!=null?ps.toFixed(1)+"×":"—","P/S"],
+    [dy!=null?dy.toFixed(2)+"%":"—","Div yield"],
+    [roe!=null?roe.toFixed(1)+"%":"—","ROE"],
+  ];
+
+  let html=`
+  <div class="hero">
+    <div class="hero-top">
+      <div class="glyph" style="background:conic-gradient(from 180deg,#4F90D4,#5FC9A0,#FFC65C,#FF9E80,#4F90D4)">${ticker[0]}</div>
+      <div><h1>${prof.name||ticker} <span class="ticker-chip">${ticker}</span></h1>
+        <div class="where">${prof.finnhubIndustry||'—'} · ${prof.exchange||''} · live data</div></div>
+    </div>
+    <div class="price-row">
+      <div><div class="bigprice">${fmtPx(price)}</div>
+        <span class="chg ${up?'up':'down'}">${up?'▲':'▼'} ${fmtPx(Math.abs(chg))} (${pct(chgp)}) today</span></div>
+      <div class="asof">📡 Live · just now<br>prices in ${prof.currency||'USD'}</div>
+    </div>
+    <div class="chips">${chips.map(c=>`<div class="chip"><b>${c[0]}</b><span>${c[1]}</span></div>`).join('')}</div>
+  </div>
+
+  <div class="explainer" style="margin-top:22px"><div class="lbl">💡 Live quantitative view</div>
+    Showing real-time numbers for <b>${ticker}</b>. The full written deep-dive (business model, bull/bear, score, invalidation level) is hand-built for the four covered names — <b>GOOGL, MSFT, META, AMZN</b>. Ask me and I can add ${ticker} as a covered name with real research.</div>
+
+  ${newsSectionHTML()}
+
+  <section><div class="sec-head"><span class="e">💪</span><h2>Financial snapshot</h2></div>
+    <p class="sec-sub">The headline health metrics pulled live.</p>
+    <div class="grid g4">
+      <div class="metric"><div class="ic">🧮</div><div class="k">OPERATING MARGIN</div><div class="val">${opm!=null?opm.toFixed(1)+'%':'—'}</div><div class="note">profit per $1 of sales</div></div>
+      <div class="metric"><div class="ic">💰</div><div class="k">NET MARGIN</div><div class="val">${npm!=null?npm.toFixed(1)+'%':'—'}</div><div class="note">final profit per $1</div></div>
+      <div class="metric"><div class="ic">🏷️</div><div class="k">GROSS MARGIN</div><div class="val">${gm!=null?gm.toFixed(1)+'%':'—'}</div><div class="note">after direct costs</div></div>
+      <div class="metric"><div class="ic">📊</div><div class="k">RETURN ON EQUITY</div><div class="val">${roe!=null?roe.toFixed(1)+'%':'—'}</div><div class="note">profit on owners' money</div></div>
+      <div class="metric"><div class="ic">📈</div><div class="k">REVENUE GROWTH</div><div class="val">${revg!=null?pct(revg):'—'}</div><div class="note">year over year</div></div>
+      <div class="metric"><div class="ic">🧾</div><div class="k">EPS (TTM)</div><div class="val">${eps!=null?'$'+eps.toFixed(2):'—'}</div><div class="note">earnings per share</div></div>
+      <div class="metric"><div class="ic">⚖️</div><div class="k">DEBT / EQUITY</div><div class="val">${de!=null?de.toFixed(2):'—'}</div><div class="note">lower = less borrowed</div></div>
+      <div class="metric"><div class="ic">🏦</div><div class="k">P/E (TTM)</div><div class="val">${pe!=null?pe.toFixed(1)+'×':'—'}</div><div class="note">price vs yearly profit</div></div>
+    </div>
+    <div class="explainer"><div class="lbl">💡 Quick reading</div>
+      Higher margins and ROE mean a more efficient, profitable business. A high P/E means investors expect strong growth (and expect more from it). Compare these to the company's peers — one number alone never tells the story.</div>
+  </section>`;
+
+  if(hi!=null&&lo!=null&&price!=null){
+    const p=Math.max(0,Math.min(100,(price-lo)/(hi-lo)*100));
+    const span=hi-lo;
+    const supHi=lo+span*0.18, resLo=hi-span*0.18;
+    const bp=(a,b)=>{const l=(a-lo)/span*100,w=(b-a)/span*100;return `left:${Math.max(0,l)}%;width:${Math.max(2,w)}%`;};
+    html+=`<section><div class="sec-head"><span class="e">📐</span><h2>52-week range + rough entry/exit zones</h2></div>
+      <p class="sec-sub">A rough read straight from the yearly range: the lower band is a support/value area, the upper band is resistance. For precise levels you'd look at the actual chart — this is just a quick guide.</p>
+      <div class="card">
+        <div class="rangebar">
+          <div class="band sup" style="${bp(lo,supHi)}"></div>
+          <div class="band res" style="${bp(resLo,hi)}"></div>
+          <div class="now" style="left:calc(${p}% - 3px)"></div>
+          <div class="nowlabel" style="left:${p}%">Now ${fmtPx(price)}</div>
+        </div>
+        <div class="rangeends"><div><b>${fmtPx(lo)}</b>52-week low</div><div style="text-align:right"><b>${fmtPx(hi)}</b>52-week high</div></div>
+        <div class="zone">
+          <div class="zonebox sup"><h3>🟢 Support / value area</h3><div class="zp">${fmtPx(lo)}–${fmtPx(supHi)}</div><p>Lower end of the year's range — historically where buyers tend to reappear. Cheaper, but sometimes for a reason.</p></div>
+          <div class="zonebox res"><h3>🔴 Resistance area</h3><div class="zp">${fmtPx(resLo)}–${fmtPx(hi)}</div><p>Near the year's high — strong momentum, but less room before it has tended to stall.</p></div>
+        </div>
+        <div class="explainer" style="margin-bottom:0"><div class="lbl">💡 Rough proxy, not a signal</div>These bands are a simple 18% slice off each end of the 52-week range, not chart-drawn levels. Use them for orientation only — not a buy/sell call.</div>
+        <button class="watchbtn" onclick="quickWatch('${ticker}',${(supHi).toFixed(2)})">🔔 Alert me near support ($${supHi.toFixed(2)})</button>
+      </div></section>`;
+    html+=ENTRY_EXIT;
+  }
+
+  html+=historySectionHTML();
+  html+=PEER_TABLE;
+  html+=`<div class="disc"><b>📋 Education, not advice.</b><br>
+    Live figures come from Finnhub and may differ slightly from your broker. This is not financial advice and no recommendation to buy, sell or hold. Always verify on your brokerage and do your own research.</div>`;
+
+  document.getElementById('stockView').innerHTML=html;
+  loadHistory(ticker);
+  loadNews(ticker);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------------- LIVE FETCH ---------------- */
+async function fetchLive(ticker){
+  document.getElementById('stockView').innerHTML=`<div class="loading"><div class="spin"></div>Fetching live data for ${ticker}…</div>`;
+  try{
+    const base="https://finnhub.io/api/v1/";
+    const [q,prof,met]=await Promise.all([
+      fetch(`${base}quote?symbol=${ticker}&token=${apiKey}`).then(r=>r.json()),
+      fetch(`${base}stock/profile2?symbol=${ticker}&token=${apiKey}`).then(r=>r.json()),
+      fetch(`${base}stock/metric?symbol=${ticker}&metric=all&token=${apiKey}`).then(r=>r.json()),
+    ]);
+    if(q.error||prof.error){throw new Error(q.error||prof.error);}
+    if(!q.c || !prof.name){ // empty = unknown symbol or limit
+      document.getElementById('stockView').innerHTML=`<div class="loading">
+        🤔 Couldn't find live data for <b>${ticker}</b>.<br>It may be an unknown ticker, or your free key hit its rate limit. Try again in a moment, or pick one of the covered names.</div>`;
+      return;
+    }
+    renderLive(ticker, q, prof, met.metric||{});
+  }catch(e){
+    document.getElementById('stockView').innerHTML=`<div class="loading">
+      ⚠️ Live data failed: ${e.message||'check your API key'}.<br>
+      Tap 🔑 Live data to add or fix your free Finnhub key — or explore a covered name (GOOGL, MSFT, META, AMZN).</div>`;
+  }
+}
+
+/* ---------------- WATCHLIST OVERVIEW ---------------- */
+function wlName(tk){
+  return NAMES[tk] || (CURATED[tk]&&CURATED[tk].name) || (UNIVERSE.find(u=>u.tk===tk)||{}).nm || tk;
+}
+function renderWatchlist(){
+  clearCharts();
+  wlData={};
+  const rows=watchlist.map(tk=>`
+    <tr id="wr-${tk}" onclick="go('${tk}')">
+      <td><span class="stk">${tk}</span> <button class="rm" onclick="event.stopPropagation();removeFromWatchlist('${tk}')" title="remove">✕</button><div class="snm">${wlName(tk)}</div></td>
+      <td class="c-px">…</td><td class="c-chg"></td><td class="c-range"></td><td class="c-sup"></td><td class="c-status"></td>
+    </tr>`).join('');
+  const keyNote = apiKey ? '' :
+    `<div class="explainer"><div class="lbl">🔑 Turn on Live data</div>Add your free Finnhub key (top right) to load live prices for every holding. The four covered names show their latest snapshot even without a key.</div>`;
+  document.getElementById('stockView').innerHTML=`
+    <div class="hero" style="padding:22px 26px">
+      <div class="hero-top">
+        <div class="glyph" style="background:conic-gradient(from 160deg,#5FC9A0,#FFC65C,#FF9E80,#B79CE0,#5FC9A0)">📋</div>
+        <div><h1>My Watchlist</h1><div class="where" id="wlSummary">${watchlist.length} stocks · tap any row for the full breakdown</div></div>
+      </div>
+    </div>
+    ${keyNote}
+    <div class="wlstats" id="wlStats"></div>
+    <section>
+      <div class="sec-head"><span class="e">👀</span><h2>At a glance</h2></div>
+      <p class="sec-sub">Price, today's move, where each sits in its 52-week range, its support level, and an <b>"entry watch"</b> read — how close it is to the support zone some investors watch for buying. This is context, <b>not a buy signal</b>.</p>
+      <div class="leg">
+        <span><b class="sbadge zone">🟢 In support zone</b> at/below support</span>
+        <span><b class="sbadge appr">🟡 Approaching</b> getting close</span>
+        <span><b class="sbadge high">🔴 Near highs</b> top of range</span>
+        <span><b class="sbadge mid">⚪ Mid-range</b></span>
+      </div>
+      <div class="waddbar"><input id="wlAdd" placeholder="Add a ticker (e.g. NVDA)" onkeydown="if(event.key==='Enter')addFromInput()"><button onclick="addFromInput()">+ Add</button></div>
+      <div class="wtablewrap"><div class="wscroll"><table class="wt">
+        <thead><tr><th>Stock</th><th>Price</th><th>Today</th><th>52-week range</th><th>Support</th><th>Entry watch</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div></div>
+    </section>
+    <div class="explainer"><div class="lbl">💡 "When should I go in?" — the calm read</div>
+      A 🟢 stock is trading in the zone where buyers have tended to step in — a lower-risk <i>area</i> to consider, ideally with dollar-cost averaging rather than one big bet. 🔴 near highs means strong momentum but less room before resistance. None of this says buy or sell — it tells you <i>where</i> a stock is so you can decide with your own plan.</div>
+    <div class="disc"><b>📋 Education, not advice.</b><br>Prices are live from Finnhub, or a labelled snapshot for the covered names, and may differ slightly from your broker. Support levels and "entry watch" are context only, not recommendations. Stocks fall as well as rise — do your own research.</div>`;
+  watchlist.forEach(tk=>populateWatchRow(tk));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateWlSummary(){
+  const near=document.querySelectorAll('table.wt tbody tr.near').length;
+  const el=document.getElementById('wlSummary'); if(!el) return;
+  el.innerHTML = `${watchlist.length} stocks · ${near?`<b style="color:#1E8A5E">${near} near support 🟢</b>`:'none near support right now'}`;
+}
+async function populateWatchRow(tk){
+  const row=document.getElementById('wr-'+tk); if(!row) return;
+  const set=(cls,html)=>{const c=row.querySelector(cls); if(c)c.innerHTML=html;};
+  let price,dp,lo,hi,supLo,supHi,isSnap=false;
+  if(CURATED[tk]){
+    const r=CURATED[tk].range; price=r.now; dp=CURATED[tk].changePct; lo=r.low; hi=r.high;
+    if(r.support){supLo=r.support[0];supHi=r.support[1];} else {supLo=lo;supHi=lo+0.18*(hi-lo);}
+    isSnap=true;
+  } else if(apiKey){
+    try{
+      const [q,m]=await Promise.all([
+        fetch(`https://finnhub.io/api/v1/quote?symbol=${tk}&token=${apiKey}`).then(r=>r.json()),
+        fetch(`https://finnhub.io/api/v1/stock/metric?symbol=${tk}&metric=all&token=${apiKey}`).then(r=>r.json()),
+      ]);
+      if(!q||!q.c){ set('.c-px','<span class="snm">no data</span>'); return; }
+      price=q.c; dp=q.dp; const mm=(m&&m.metric)||{};
+      hi=mm['52WeekHigh']; lo=mm['52WeekLow'];
+      if(hi&&lo){supLo=lo;supHi=lo+0.18*(hi-lo);}
+    }catch(e){ set('.c-px','<span class="snm">load failed</span>'); return; }
+  } else { set('.c-px','<span class="snm">🔑 needs key</span>'); return; }
+
+  const up=dp>=0;
+  set('.c-px', `<span class="px">${fmtPx(price)}</span>${isSnap?' <span class="snm">snap</span>':''}`);
+  set('.c-chg', `<span class="chg ${up?'up':'down'}">${up?'▲':'▼'} ${pct(dp)}</span>`);
+  if(hi&&lo&&price){ const p=Math.max(0,Math.min(100,(price-lo)/(hi-lo)*100));
+    set('.c-range', `<div class="wtbar"><div class="m" style="left:calc(${p}% - 2px)"></div></div>`); }
+  else set('.c-range','<span class="snm">—</span>');
+  set('.c-sup', supHi? `<span class="sup">$${Math.round(supLo)}–$${Math.round(supHi)}</span>` : '<span class="snm">—</span>');
+
+  // entry-watch status
+  let badge='<span class="snm">—</span>';
+  if(supHi&&price&&hi&&lo){
+    if(price<=supHi) badge='<span class="sbadge zone">🟢 In support zone</span>', row.classList.add('near');
+    else if(price<=supHi*1.07) badge='<span class="sbadge appr">🟡 Approaching</span>';
+    else if(price>=hi-0.08*(hi-lo)) badge='<span class="sbadge high">🔴 Near highs</span>';
+    else badge='<span class="sbadge mid">⚪ Mid-range</span>';
+  } else if(supHi&&price){
+    badge = price<=supHi? '<span class="sbadge zone">🟢 In support zone</span>' : '<span class="sbadge mid">⚪ Above support</span>';
+    if(price<=supHi) row.classList.add('near');
+  }
+  set('.c-status', badge);
+  wlData[tk]={dp, near:row.classList.contains('near'), live:!isSnap};
+  updateWlSummary();
+  renderWlStats();
+}
+function renderWlStats(){
+  const el=document.getElementById('wlStats'); if(!el) return;
+  const vals=Object.entries(wlData).filter(([,d])=>typeof d.dp==='number' && (d.live || d.dp!==0));
+  const n=vals.length; if(!n){el.innerHTML='';return;}
+  const up=vals.filter(([,d])=>d.dp>0).length, down=vals.filter(([,d])=>d.dp<0).length;
+  const avg=vals.reduce((s,[,d])=>s+d.dp,0)/n;
+  const near=Object.values(wlData).filter(d=>d.near).length;
+  let top=vals[0], low=vals[0];
+  vals.forEach(v=>{ if(v[1].dp>top[1].dp)top=v; if(v[1].dp<low[1].dp)low=v; });
+  const col=avg>=0?'#1E8A5E':'#C0392B';
+  el.innerHTML=`
+    <div class="wlstat"><b style="color:${col}">${avg>=0?'+':''}${avg.toFixed(2)}%</b><span>avg move today</span></div>
+    <div class="wlstat"><b>${up} ▲ / ${down} ▼</b><span>advancing / declining</span></div>
+    <div class="wlstat"><b style="color:#1E8A5E">${near}</b><span>near support 🟢</span></div>
+    <div class="wlstat"><b>${top[0]} <span style="font-size:.9rem;color:#1E8A5E">${top[1].dp>=0?'+':''}${top[1].dp.toFixed(1)}%</span></b><span>today's leader</span></div>
+    <div class="wlstat"><b>${low[0]} <span style="font-size:.9rem;color:#C0392B">${low[1].dp>=0?'+':''}${low[1].dp.toFixed(1)}%</span></b><span>today's laggard</span></div>`;
+}
+function addToWatchlist(tk){
+  tk=(tk||'').toUpperCase().trim(); if(!tk) return;
+  if(watchlist.includes(tk)){toast(tk+' is already on your watchlist.');return;}
+  watchlist.push(tk); renderWatchlist();
+}
+function addFromInput(){ const el=document.getElementById('wlAdd'); if(el){addToWatchlist(el.value);} }
+function removeFromWatchlist(tk){ watchlist=watchlist.filter(x=>x!==tk); renderWatchlist(); }
+
+/* ---------------- ROUTING ---------------- */
+function go(ticker){
+  ticker=ticker.toUpperCase().trim();
+  if(CURATED[ticker]){renderCurated(CURATED[ticker]);return;}
+  if(apiKey){fetchLive(ticker);return;}
+  document.getElementById('stockView').innerHTML=`<div class="loading">
+    🔑 <b>${ticker}</b> needs live data.<br>Tap the <b>🔑 Live data</b> button up top and paste a free Finnhub key to look up any stock — or explore a covered name: GOOGL, MSFT, META, AMZN.</div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------------- SEARCH UI ---------------- */
+const input=document.getElementById('searchInput'), dd=document.getElementById('dropdown');
+let activeIdx=-1,current=[],searchTimer=null,lastQ="";
+
+function render(list,hint){
+  current=list;activeIdx=-1;
+  let extra = hint?`<div class="noopt" style="padding:9px 16px;font-size:.78rem">${hint}</div>`:'';
+  if(!list.length){
+    dd.innerHTML=(apiKey
+      ?`<div class="noopt">Searching all stocks…</div>`
+      :`<div class="noopt">Press Enter to look up "${input.value.toUpperCase()}" live (needs an API key)</div>`);
+    dd.classList.add('open');return;
+  }
+  dd.innerHTML=list.map((s,i)=>`<div class="opt ${s.ready?'ready':''}" data-i="${i}">
+    <span class="tk">${s.tk}</span><span class="nm">${s.nm}</span>
+    <span class="seg">${s.ready?'✓ Full analysis':'live'}</span></div>`).join('')+extra;
+  dd.querySelectorAll('.opt').forEach(o=>o.addEventListener('mousedown',e=>{e.preventDefault();pick(list[+o.dataset.i]);}));
+  dd.classList.add('open');
+}
+function pick(obj){dd.classList.remove('open');input.value=obj.nm||obj.tk;go(obj.sym||obj.tk);}
+
+// Live symbol lookup across ALL stocks (Finnhub /search)
+async function liveSymbolSearch(qv){
+  try{
+    const res=await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(qv)}&token=${apiKey}`).then(r=>r.json());
+    return (res.result||[])
+      .filter(x=>!x.type||/common stock|ADR|REIT|ETF/i.test(x.type))
+      .slice(0,15)
+      .map(x=>{const t=(x.displaySymbol||x.symbol);return {tk:t,sym:x.symbol,nm:x.description||t,ready:!!CURATED[t.toUpperCase()]};});
+  }catch(e){return [];}
+}
+
+function localMatches(qv){
+  return UNIVERSE.filter(s=>s.tk.toLowerCase().includes(qv)||s.nm.toLowerCase().includes(qv))
+    .map(s=>({tk:s.tk,sym:s.tk,nm:s.nm,ready:s.ready}));
+}
+
+input.addEventListener('focus',()=>{if(!input.value)render(UNIVERSE.map(s=>({tk:s.tk,sym:s.tk,nm:s.nm,ready:s.ready})));});
+input.addEventListener('input',()=>{
+  const qv=input.value.trim().toLowerCase();
+  if(!qv){render(UNIVERSE.map(s=>({tk:s.tk,sym:s.tk,nm:s.nm,ready:s.ready})));return;}
+  const local=localMatches(qv);
+  if(!apiKey){ render(local, local.length?'🔑 Add a free key to search every other stock too'.replace('🔑','🔑 '):'' ); return; }
+  // instant local results, then merge in live results after a short debounce
+  render(local.length?local:[], local.length?'Searching all stocks…':null);
+  lastQ=qv; clearTimeout(searchTimer);
+  searchTimer=setTimeout(async()=>{
+    const live=await liveSymbolSearch(qv);
+    if(qv!==lastQ) return; // user kept typing
+    const seen=new Set(local.map(x=>x.tk.toUpperCase()));
+    const merged=[...local,...live.filter(x=>!seen.has(x.tk.toUpperCase()))];
+    render(merged);
+  },280);
+});
+input.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    if(activeIdx>=0&&current[activeIdx]){pick(current[activeIdx]);}
+    else if(input.value.trim()){const guess=input.value.trim().toUpperCase().split(' ')[0];dd.classList.remove('open');go(guess);}
+    return;
+  }
+  if(!dd.classList.contains('open'))return;
+  const opts=dd.querySelectorAll('.opt');
+  if(e.key==='ArrowDown'){e.preventDefault();activeIdx=Math.min(activeIdx+1,opts.length-1);}
+  else if(e.key==='ArrowUp'){e.preventDefault();activeIdx=Math.max(activeIdx-1,0);}
+  else if(e.key==='Escape'){dd.classList.remove('open');return;}
+  opts.forEach((o,i)=>o.classList.toggle('active',i===activeIdx));
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.search'))dd.classList.remove('open');});
+
+/* ---------------- KEY PANEL ---------------- */
+const keyBtn=document.getElementById('keyBtn'),keyPanel=document.getElementById('keyPanel');
+keyBtn.addEventListener('click',()=>keyPanel.classList.toggle('open'));
+document.getElementById('keySave').addEventListener('click',()=>{
+  apiKey=document.getElementById('keyInput').value.trim();
+  histKey=document.getElementById('histInput').value.trim();
+  const st=document.getElementById('keyStatus');
+  if(apiKey){st.textContent='✓ Live data on'+(histKey?' · history on':'');st.style.color='#1E8A5E';keyBtn.classList.add('on');keyBtn.textContent='🔑 Live: on';}
+  else{st.textContent='enter your Finnhub key first';st.style.color='#C0392B';}
+});
+if(apiKey){keyBtn.classList.add('on');keyBtn.textContent='🔑 Live: on';}
+
+/* ---------------- ALERTS WIRING ---------------- */
+const bellBtn=document.getElementById('bellBtn'),alertsPanel=document.getElementById('alertsPanel');
+bellBtn.addEventListener('click',()=>alertsPanel.classList.toggle('open'));
+document.getElementById('alertsClose').addEventListener('click',()=>alertsPanel.classList.remove('open'));
+document.getElementById('watchAdd').addEventListener('click',()=>{
+  if(!apiKey){toast('🔑 Turn on Live data first so alerts can check prices.');keyPanel.classList.add('open');return;}
+  addWatch(document.getElementById('watchTk').value, document.getElementById('watchPx').value);
+  document.getElementById('watchTk').value='';document.getElementById('watchPx').value='';
+});
+renderWatches();
+watchTimer=setInterval(checkWatches,60000); // check every minute while page is open
+
+/* ---------------- WATCHLIST NAV ---------------- */
+document.getElementById('homeBtn').addEventListener('click',renderWatchlist);
+document.getElementById('homeLink').addEventListener('click',renderWatchlist);
+
+/* ---------------- INITIAL ---------------- */
+renderWatchlist();
+</script>
+</body>
+</html>
