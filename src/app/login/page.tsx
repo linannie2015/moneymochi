@@ -111,6 +111,15 @@ export default function LoginPage() {
             {busy && <Loader2 size={16} className="animate-spin" />}
             {mode === 'signin' ? 'Sign in' : 'Create account'}
           </button>
+
+          {mode === 'signup' && (
+            <p className="text-center text-xs text-muted leading-relaxed mt-1">
+              By creating an account, you agree to our{' '}
+              <Link href="/terms" className="font-heading font-semibold text-peach hover:text-coral no-underline">
+                Terms &amp; Conditions
+              </Link>.
+            </p>
+          )}
         </form>
 
         <div className="text-center mt-4 text-sm text-muted">

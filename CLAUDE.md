@@ -129,6 +129,7 @@ npm run lint    # ESLint
 - Demo data uses fixed timestamps and seeded random to avoid hydration mismatches.
 
 ## Status Log (newest first — UPDATE AFTER EVERY CHANGE)
+- **2026-06-18** — Added **sign-up disclaimer** ("By creating an account, you agree to our Terms & Conditions") and a **`/terms` page** (`src/app/terms/page.tsx`) — educational/not-advice, free/no-subscription, data & privacy, etc. Added `/terms` to `AuthGate` public paths. App intended for **public use, no subscription** currently.
 - **2026-06-18** — Verified `npm run build` passes; fixed pre-existing build errors (Recharts Tooltip formatter types ×2, MochiInsights `onClick` passing event as AbortSignal, `useRef<ReturnType<typeof setTimeout>>` missing arg ×3). Prepared Vercel deploy guide (env vars). Pushed to GitHub.
 - **2026-06-18** — Switched auth from email OTP to **email + password** (OTP needs custom SMTP; not worth it now). Updated `/login`, `/account`, `auth.tsx`.
 - **2026-06-18** — Added **accounts**: `auth.tsx`, `/login`, `/account`, `Landing.tsx`, `AuthGate.tsx`. Removed "Built with Next.js" from footer. Hid nav when logged out.

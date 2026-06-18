@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
 // Pages anyone can see without being logged in.
-const PUBLIC_PATHS = ['/', '/login'];
+const PUBLIC_PATHS = ['/', '/login', '/terms'];
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading, configured } = useAuth();
