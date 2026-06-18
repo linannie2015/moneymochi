@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Bell, LayoutList, Wallet, Calculator, Moon, Sun } from 'lucide-react';
+import { Bell, LayoutList, Wallet, Calculator, Moon, Sun, LogIn, LogOut } from 'lucide-react';
 import SearchBar from './SearchBar';
+import { useAuth } from '@/lib/auth';
 
 function getMarketStatus() {
   const now = new Date();
@@ -106,6 +107,9 @@ function useTheme() {
 export default function TopBar() {
   const market = useMarketStatus();
   const theme = useTheme();
+  const { user, signOut, configured } = useAuth();
+  // Show app navigation only in demo mode (no Supabase) or when signed in
+  const showNav = !configured || !!user;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-cream/82 border-b border-line">
@@ -122,7 +126,7 @@ export default function TopBar() {
         </Link>
 
         <div className="flex-1 min-w-0 max-w-[420px] ml-auto">
-          <SearchBar />
+          {showNav && <SearchBar />}
         </div>
 
         <button
@@ -134,7 +138,41 @@ export default function TopBar() {
           {theme.dark ? <Sun size={16} className="text-sun" /> : <Moon size={16} className="text-lav" />}
         </button>
 
-        <div className="hidden md:flex items-center gap-2 flex-none">
+        {configured && (
+          user ? (
+            <div className="flex items-center gap-2 flex-none">
+              <Link
+                href="/account"
+                className="grid place-items-center w-9 h-9 rounded-full bg-lav-soft text-[#6B4FA0] font-heading font-bold text-sm flex-none
+                           no-underline hover:ring-2 hover:ring-lav transition-all cursor-pointer"
+                title={`${user.email ?? ''} — account settings`}
+              >
+                {(user.email ?? '?').charAt(0).toUpperCase()}
+              </Link>
+              <button
+                onClick={() => signOut()}
+                className="font-heading font-semibold text-sm border-2 border-line bg-card rounded-full px-3 py-2
+                           hover:border-peach hover:bg-peach-soft transition-all shadow-[var(--shadow-sm)]
+                           flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+              >
+                <LogOut size={15} />
+                <span className="hidden sm:inline">Log out</span>
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="font-heading font-semibold text-sm bg-peach text-white border-2 border-peach rounded-full px-3 py-2
+                         hover:bg-coral hover:border-coral transition-all no-underline
+                         shadow-[var(--shadow-sm)] flex items-center gap-1.5 whitespace-nowrap flex-none"
+            >
+              <LogIn size={15} />
+              <span className="hidden sm:inline">Log in</span>
+            </Link>
+          )
+        )}
+
+        <div className={`${showNav ? 'hidden md:flex' : 'hidden'} items-center gap-2 flex-none`}>
           <Link
             href="/"
             className="font-heading font-semibold text-sm border-2 border-line bg-card rounded-full px-3 py-2

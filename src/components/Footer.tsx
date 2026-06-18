@@ -25,8 +25,8 @@ export default function Footer() {
             </div>
             <div className="flex flex-col gap-1.5">
               <span className="font-bold text-xs uppercase tracking-wider text-muted mb-1">About</span>
-              <span className="text-muted text-xs">v1.0 demo</span>
-              <span className="text-muted text-xs">Built with Next.js</span>
+              <Link href="/account" className="text-ink no-underline hover:text-peach transition-colors">Account</Link>
+              <Link href="/login" className="text-ink no-underline hover:text-peach transition-colors">Sign in</Link>
             </div>
           </div>
         </div>

@@ -3,6 +3,8 @@ import './globals.css';
 import TopBar from '@/components/TopBar';
 import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
+import { AuthProvider } from '@/lib/auth';
+import AuthGate from '@/components/AuthGate';
 
 export const metadata: Metadata = {
   title: 'MoneyMochi — Friendly Finance Dashboard',
@@ -33,12 +35,14 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="min-h-full flex flex-col">
-        <TopBar />
-        <main className="flex-1 max-w-[1080px] mx-auto w-full px-4 sm:px-6 pt-25 pb-24 md:pb-12">
-          {children}
-        </main>
-        <Footer />
-        <MobileNav />
+        <AuthProvider>
+          <TopBar />
+          <main className="flex-1 max-w-[1080px] mx-auto w-full px-4 sm:px-6 pt-25 pb-24 md:pb-12">
+            <AuthGate>{children}</AuthGate>
+          </main>
+          <Footer />
+          <MobileNav />
+        </AuthProvider>
       </body>
     </html>
   );

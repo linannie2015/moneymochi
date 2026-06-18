@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Sparkles, PiggyBank, HandCoins, BellRing } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 const NAV_ITEMS = [
   { href: '/', icon: Sparkles, label: 'Watchlist' },
@@ -13,6 +14,10 @@ const NAV_ITEMS = [
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const { user, configured } = useAuth();
+
+  // No app tabs until the visitor is signed in
+  if (configured && !user) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[var(--card)]/90 backdrop-blur-md border-t border-line shadow-[0_-4px_20px_rgba(120,90,70,.08)]">
